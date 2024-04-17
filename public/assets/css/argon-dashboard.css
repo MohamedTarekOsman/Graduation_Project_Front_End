@@ -26938,3 +26938,6 @@ pre[class*="language-"] {
   text-align: right;
   direction: rtl;
 }
+.fc-day {  
+  font-size: 12px;
+}

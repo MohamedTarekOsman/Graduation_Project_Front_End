@@ -67,7 +67,15 @@ const SideNavbar = () => {
         <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
             <i class="ni ni-tv-2 text-primary text-sm opacity-10"></i>
           </div>
-          <span className="nav-link-text">تسجيل الحضور</span>
+          <span className="nav-link-text">ادارة المستخدمين</span>
+        </Link>
+      </li>
+      <li className="nav-item">
+        <Link className="nav-link " to="/attendanceCalender">
+        <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
+            <i class="ni ni-tv-2 text-primary text-sm opacity-10"></i>
+          </div>
+          <span className="nav-link-text">سجل الحضور</span>
         </Link>
       </li>
          

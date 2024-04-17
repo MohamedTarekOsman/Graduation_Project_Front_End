@@ -3,97 +3,107 @@ import SideNavbar from '../../components/SideNavbar'
 import TopNavbar from '../../components/TopNavbar'
 import { useDispatch, useSelector } from 'react-redux'
 import { getAllAttendance } from '../../Redux/actions/attendanceAction'
+import {DataTable} from "simple-datatables"
+import { useState } from 'react'
 
 const Attendance = () => {
-  const dispatch=useDispatch()
-  const AllAttendances=useSelector(state=>state.attendanceReducer.attendances)
-  useEffect(()=>{
-    const getAllattendance=async()=>{
-      await dispatch(getAllAttendance())
-    }
-    getAllattendance()
-    
-  },[])
+  const dispatch = useDispatch();
+  const AllAttendances = useSelector(state => state.attendanceReducer.attendances);
+  const [dataLoaded, setDataLoaded] = useState(false);
 
+  useEffect(() => {
+    const fetchData = async () => {
+      await dispatch(getAllAttendance());
+      setDataLoaded(true);
+    };
+    fetchData();
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (dataLoaded) {
+      const dataTable = new DataTable("#myTable", {
+        searchable: true,
+      });
+
+      return () => {
+        dataTable.destroy();
+      };
+    }
+  }, [dataLoaded]);
+
+  
     return <> 
     <SideNavbar/>
     <main class="main-content position-relative border-radius-lg p-3 "> 
     <TopNavbar/>
     <div className=''>
     
-    <div className='row m-6'>
+    <div className='row m-4'>
     
     
     </div>
-    
         </div>
-        <table className="table    table-bordered  text-center mt-5">
-                <thead className='text-light'>
-                    <th className="bg-success">  العمليات </th>
-                    <th className="bg-success"> تاريخ الاضافة</th>
-                    <th className="bg-success">اسم المستخدم</th>
-                    <th className="bg-success">الدور</th>
-                    <th className="bg-success">الاسم</th>
-                    
-                    
-                </thead>
-                <tbody id="tableData">
+        <div className='card'>
+          <div className='table-responsive p-0'>
+          <div class="card-header pb-0">
+            <h6>Authors table</h6>
+          </div>
+            <table className="table align-items-center" id='myTable'>
+                  <thead className='text-light ' >
+                      <th className="bg-success text-white ">  العمليات </th>
+                      <th className="bg-success text-white"> تاريخ الاضافة</th>
+                      <th className="bg-success text-white">اسم المستخدم</th>
+                      <th className="bg-success text-white">الدور</th>
+                      <th className="bg-success text-white ">الاسم</th>
+                  </thead>
+                  <tbody id="tableData">
+          
+          
           <tr>
-                        <td className='bg-success'> <input class="form-control  " type="text" name=" first name" placeholder="بحث بلعمليات" required /></td>
-                        <td className="bg-success">  <input class="form-control " type="text" name=" first name" placeholder="بحث بتاريخ الاضافه" required /></td>
-                        <td className="bg-success"> <input class="form-control  " type="text" name=" first name" placeholder="بحث باسم المستخدم" required /></td>
-                        <td className="bg-success">
-                        <input class="form-control  " type="text" name=" first name" placeholder="بحث بالدور" required />
-        </td>
-        <td className="bg-success"> <input class="form-control   " type="text" name=" first name" placeholder="بحث بالاسم " required /></td>
-        
-     
-    
-    
-        </tr>
-        
-        <tr>
-                        <td> <button type="button" class="btn btn-primary">اذهب ل اعدادات الادمن</button></td>
-                        <td className="">None</td>
-                        <td className="">admin</td>
-                        <td className="">admin</td>
-                        
-        <td className="">mohamed</td>
+                          <td> <button type="button" class="btn btn-primary">اذهب ل اعدادات الادمن</button></td>
+                          <td className="">None</td>
+                          <td className="">admin</td>
+                          <td className="">admin</td>
+                          
+          <td className="">mohamed</td>
+          
         
       
-     
-    
-    
-        </tr>
-    
-    {
-      AllAttendances.data?(
-        AllAttendances.data.map((item,index)=><tr>
-        <td> <button type="button" class="btn btn-primary">تغير كلمة السر</button>
-        <button type="button" class="btn btn-danger mx-2">حذف</button>
-        <button type="button" class="btn btn-success">تعديل</button>
-        </td>
-        <td className="">{new Date(item.updatedAt).getDate()}/{new Date(item.updatedAt).getMonth() + 1}/{new Date(item.updatedAt).getFullYear()}</td>
-        <td className="">{item.userId.username}</td>
-        <td className="">{item.userId.role}</td>
+      
+      
+          </tr>
+      
+      {
+        AllAttendances.data?(
+          AllAttendances.data.map((item,index)=><tr>
+          <td> <button type="button" class="btn btn-primary">تغير كلمة السر</button>
+          <button type="button" class="btn btn-danger mx-2">حذف</button>
+          <button type="button" class="btn btn-success">تعديل</button>
+          </td>
+          <td className="">{new Date(item.updatedAt).getDate()}/{new Date(item.updatedAt).getMonth() + 1}/{new Date(item.updatedAt).getFullYear()}</td>
+          <td className="">{item.userId.username}</td>
+          <td className="">{item.userId.role}</td>
+          
+  <td className="">{item.firstName} {item.lastName}</td>
+
+
+
+
+
+  </tr>)
+        ):''
+      }
+          
+      
+          
+      
+      
+      
+          </tbody>
+            </table>
+          </div>
         
-<td className="">{item.firstName} {item.lastName}</td>
-
-
-
-
-
-</tr>)
-      ):''
-    }
-        
-    
-        
-    
-    
-    
-        </tbody>
-        </table>
+        </div>
         <div>
 
     <button type="button" className="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
