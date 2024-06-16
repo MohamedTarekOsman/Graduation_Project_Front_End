@@ -25,21 +25,24 @@
     <!-- CSS Files -->
     <link id="pagestyle" href="./assets/css/argon-dashboard.css?v=2.0.4" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet" type="text/css">
-
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
     <title>React App</title>
   </head>
   <body class="g-sidenav-show   bg-gray-100">
     <div class="min-height-300 bg-primary position-absolute w-100"></div>
     <div id="root"></div>
     <div class="fixed-plugin">
-      <a class="fixed-plugin-button text-dark position-fixed px-3 py-2">
-        <i class="fa fa-cog py-2"> </i>
+      <a class="fixed-plugin-button text-dark position-fixed px-3 py-2 pb-1">
+        <i class="material-symbols-outlined">
+          settings
+          </i>
       </a>
       <div class="card shadow-lg">
         <div class="card-header pb-0 pt-3 ">
           <div class="float-start">
-            <h5 class="mt-3 mb-0">Argon Configurator</h5>
-            <p>See our dashboard options.</p>
+            <h5 class="mt-3 mb-0">Custom Configurator</h5>
+            <p>Set Your dashboard options.</p>
           </div>
           <div class="float-end mt-4">
             <button class="btn btn-link text-dark p-0 fixed-plugin-close-button">
@@ -88,18 +91,8 @@
               <input class="form-check-input mt-1 ms-auto" type="checkbox" id="dark-version" onclick="darkMode(this)">
             </div>
           </div>
-          <a class="btn bg-gradient-dark w-100" href="https://www.creative-tim.com/product/argon-dashboard">Free Download</a>
-          <a class="btn btn-outline-dark w-100" href="https://www.creative-tim.com/learning-lab/bootstrap/license/argon-dashboard">View documentation</a>
-          <div class="w-100 text-center">
-            <a class="github-button" href="https://github.com/creativetimofficial/argon-dashboard" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star creativetimofficial/argon-dashboard on GitHub">Star</a>
-            <h6 class="mt-3">Thank you for sharing!</h6>
-            <a href="https://twitter.com/intent/tweet?text=Check%20Argon%20Dashboard%20made%20by%20%40CreativeTim%20%23webdesign%20%23dashboard%20%23bootstrap5&amp;url=https%3A%2F%2Fwww.creative-tim.com%2Fproduct%2Fargon-dashboard" class="btn btn-dark mb-0 me-2" target="_blank">
-              <i class="fab fa-twitter me-1" aria-hidden="true"></i> Tweet
-            </a>
-            <a href="https://www.facebook.com/sharer/sharer.php?u=https://www.creative-tim.com/product/argon-dashboard" class="btn btn-dark mb-0 me-2" target="_blank">
-              <i class="fab fa-facebook-square me-1" aria-hidden="true"></i> Share
-            </a>
-          </div>
+          <a class="btn bg-gradient-dark w-100" >Change Font</a>
+         
         </div>
       </div>
     </div>

@@ -4,9 +4,11 @@ import { useDispatch, useSelector } from 'react-redux'
 import { getAllUsers } from '../../Redux/actions/usersAction'
 import SideNavbar from '../../components/SideNavbar'
 import TopNavbar from '../../components/TopNavbar'
+import {DataTable} from "simple-datatables"
 
 const AllUsers = () => {
     const [input,setInput]=useState("")
+    const [dataLoaded, setDataLoaded] = useState(false);
     function search(){
     //var seachval=input.toLowerCase()
     }  
@@ -16,6 +18,7 @@ const AllUsers = () => {
     useEffect(()=>{
       const getUsers=async()=>{
         await dispatch(getAllUsers())
+        setDataLoaded(true);
       }
       getUsers()
       if(allusers.data){
@@ -23,20 +26,39 @@ const AllUsers = () => {
       }
       
     },[])
+    useEffect(() => {
+      if (dataLoaded) {
+        const dataTable = new DataTable("#myTable", {
+          searchable: true,
+        });
+  
+        return () => {
+          dataTable.destroy();
+        };
+      }
+    }, [dataLoaded]);
   return (
     <>
         <SideNavbar/>
         <div className="main-content" id="panel">
             <TopNavbar/>
-            <div className="container my-3">
-            <input onKeyUp={search} type='text' value={input} onChange={(e)=>{setInput(e.target.value)}} className="form-control w-25 mb-3" placeholder="Search...."/>
-            <table className="table table-dark table-striped table-bordered  "style={{position:'relative'}}>
+            <div className='mt-4'>
+    
+    
+            </div>
+            <div className="container">
+            <div className='card'>
+            <div className='table-responsive p-2'>
+          <div class="card-header pb-0">
+            <h6>Authors table</h6>
+          </div>
+          <table id='myTable' className="table table-striped" style={{color:'black'}}>
                 <thead className=''>
-                    <th className="bg-dark">Username</th>
-                    <th className="bg-dark">Reviewed</th>
-                    <th className="bg-dark">Role</th>
-                    <th className="bg-dark">Seen</th>
-                    <th className="bg-dark">Created date</th>
+                    <th >Username</th>
+                    <th >Reviewed</th>
+                    <th >Role</th>
+                    <th >Seen</th>
+                    <th >Created date</th>
                 </thead>
                 <tbody id="tableData">
                 {
@@ -49,28 +71,13 @@ const AllUsers = () => {
                 </tr>):""
                 }   
         </tbody>
-        </table>
-    
-        {/* <nav aria-label="Page navigation example ">
-      <ul className="pagination justify-content-center my-5">
-        <li className="page-item">
-          <a className="page-link" href="#" aria-label="Previous">
-            <span aria-hidden="true">&laquo;</span>
-          </a>
-        </li>
-        <li className="page-item"><a className="page-link">1</a></li>
-        <li className="page-item"><a className="page-link" >2</a></li>
-        <li className="page-item"><a className="page-link"  >3</a></li>
-        <li className="page-item">
-          <a className="page-link" href="#" aria-label="Next">
-            <span aria-hidden="true">&raquo;</span>
-          </a>
-        </li>
-      </ul>
-    </nav> */}
+          </table>
+          </div>
             </div>
             </div>
             
+            
+          </div>
         </>
   )
 }

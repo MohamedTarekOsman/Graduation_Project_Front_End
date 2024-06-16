@@ -2,7 +2,9 @@ import React, { useEffect } from 'react'
 import SideNavbar from '../../components/SideNavbar'
 import TopNavbar from '../../components/TopNavbar'
 import { useDispatch, useSelector } from 'react-redux'
-import { getAllNotification } from '../../Redux/actions/notificationsAction'
+import { deleteNotification, getAllNotification } from '../../Redux/actions/notificationsAction'
+import { IoTrashBin } from 'react-icons/io5'
+import Swal from 'sweetalert2'
 const NotificationPage = () => {
   const dispatch=useDispatch()
   const notifications=useSelector(state=>state.notificationReducer.notification)
@@ -14,6 +16,21 @@ const NotificationPage = () => {
   },[])
   if(notifications){
     console.log(notifications)
+  }
+  const delNotification=(id)=>{
+    dispatch(deleteNotification(id))
+    Swal.fire({
+      title: 'عملية ناجحة',
+      text: 'تم ازالة الاشعار بنجاح',
+      icon: 'success',
+      showConfirmButton: false,
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      timer: 1500,
+      timerProgressBar: true
+  }).then(()=>{
+    dispatch(getAllNotification())
+  })
   }
   return (
        <>
@@ -32,31 +49,16 @@ const NotificationPage = () => {
     </div>
     <div  className="w-100 card p-4 rtl">
       {
-        notifications.data?(notifications.data.map((item,index)=>
+        notifications.data?(Array.isArray(notifications.data) && notifications.data.length > 0 ?notifications.data.map((item,index)=>
         <div  className={"alert text-white "+item.message_type} role="alert">
         {item.message}
-        <button type="button" className="btn btn-outline-white mx-4">عرض التفاصيل</button>
-        </div>)):''
+        <button type="button" className="btn btn-outline-white mx-4 mt-3">عرض التفاصيل</button>
+        <div style={{cursor:"pointer",padding:"10px",marginTop:"10px",float:"left"}} class="form-check" onClick={()=>{delNotification(notifications.data[index]._id)}} >
+          <IoTrashBin style={{width:"30px",height:"30px"}}/>
+        </div>
+        </div>
+        ):""):""
       }
-          
-          
-          {/* <div  className="alert alert-info text-white" role="alert">
-          
-          يوجد رسالة جديدة
-          <button type="button" className="btn btn-outline-white mx-4">عرض التفاصيل</button>
-          </div>
-          <div  className="alert alert-danger text-white" role="alert">
-          يوجد رسالة جديدة
-          <button type="button" className="btn btn-outline-white mx-4">عرض التفاصيل</button>
-          </div>
-          <div  className="alert alert-success text-white" role="alert">
-          يوجد رسالة جديدة
-          <button type="button" className="btn btn-outline-white mx-4">عرض التفاصيل</button>
-          </div>
-          <div  className="alert alert-secondary text-white" role="alert">
-          يوجد رسالة جديدة
-          <button type="button" className="btn btn-outline-white mx-4">عرض التفاصيل</button>
-          </div> */}
         </div>
         </div>
             </div>

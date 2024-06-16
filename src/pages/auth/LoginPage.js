@@ -2,8 +2,7 @@
 /* eslint-disable jsx-a11y/no-redundant-roles */
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from 'react';
-import logo from '../../images/logo.png'
-import { Link, useNavigate } from 'react-router-dom';
+import {  useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector} from "react-redux";
 import { loginUser } from '../../Redux/actions/authAction';
 import notify from '../../notification/notify';
@@ -62,13 +61,13 @@ const LoginPage = () => {
     <div class="main-content" style={{backgroundColor:'#172b4d',minHeight:'100vh'}}>
     <div class="header bg-gradient-primary">
       <div class="container">
-        <div class="header-body text-center mb-7" style={{position:"relative",top:"100px"}}>
+        <div class="header-body text-center mb-4" style={{position:"relative",top:"100px"}}>
           <div class="row justify-content-center">
-            <div class="col-lg-5 col-md-6">
-              <h1 class="text-white mt-4">
+            <div class="col-lg-5 col-md-6"  >
+              <h3 class="text-white mt-0">
                 <a target="_blank" class="text-white text-md"
-                   href="/" style={{textDecoration:'none'}}>WELCOME To Our System</a>
-              </h1>
+                  href="/" style={{textDecoration:'none'}}>WELCOME To Our System</a>
+              </h3>
               <p class="text-lead text-light">
                 PROVIDE YOUR CREDENTIALS TO LOGIN
               </p>
@@ -84,7 +83,7 @@ const LoginPage = () => {
     </div>
 
 
-    <div class="container mt--8 pb-5">
+    <div class="container mt-8 pb-5 w-60">
       <div class="row justify-content-center">
         <div class="col-lg-5 col-md-7">
           <div class="card border-0 mb-0">
@@ -95,7 +94,7 @@ const LoginPage = () => {
                 <div class="form-group mb-3">
                   <div class="input-group input-group-merge input-group-alternative">
                     <div class="input-group-prepend">
-                      <span class="input-group-text"><i class="ni ni-email-83"></i></span>
+                      <span style={{height:"100%"}} class="input-group-text"><i class="ni ni-email-83"></i></span>
                     </div>
                     <input class="form-control" value={username} onChange={(e)=>{setUsername(e.target.value)}} placeholder="Email" type="email"/>
                   </div>
@@ -103,7 +102,7 @@ const LoginPage = () => {
                 <div class="form-group">
                   <div class="input-group input-group-merge input-group-alternative">
                     <div class="input-group-prepend">
-                      <span class="input-group-text"><i class="ni ni-lock-circle-open"></i></span>
+                      <span style={{height:"100%"}} class="input-group-text"><i class="ni ni-lock-circle-open"></i></span>
                     </div>
                     <input class="form-control" value={password} onChange={(e)=>{setPassword(e.target.value)}} placeholder="Password" type="password"/>
                   </div>

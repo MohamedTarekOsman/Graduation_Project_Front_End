@@ -28,7 +28,6 @@ export const createTask=(formData)=>async (dispatch)=>{
         dispatch({
             type:CREATE_TASK,
             payload:response,
-            loading:true
         })
     }catch(e){
         dispatch({
@@ -42,7 +41,7 @@ export const createTask=(formData)=>async (dispatch)=>{
 //get one task with id
 export const getOneTask=(id)=>async (dispatch)=>{
     try{
-        const response=await useGetDataToken(`/api/v1/tasks/${id}`);
+        const response=await useGetDataToken(`/tasks/${id}`);
         dispatch({
             type:GET_ONE_TASK,
             payload:response,
@@ -60,7 +59,7 @@ export const getOneTask=(id)=>async (dispatch)=>{
 //delete task with id
 export const deleteTask=(id)=>async (dispatch)=>{
     try{
-        const response=await useDeleteData(`/api/v1/tasks/${id}`);
+        const response=await useDeleteData(`/tasks/${id}`);
         dispatch({
             type:DELETE_TASK,
             payload:response,
@@ -77,7 +76,7 @@ export const deleteTask=(id)=>async (dispatch)=>{
 //update task with id
 export const updateTask=(id,formdata)=>async (dispatch)=>{
     try{
-        const response=await useUpdateData(`/api/v1/tasks/${id}`,formdata);
+        const response=await useUpdateData(`/tasks/${id}`,formdata);
         dispatch({
             type:UPDATE_TASK,
             payload:response,

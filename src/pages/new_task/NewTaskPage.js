@@ -1,53 +1,91 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useFormik } from 'formik'
 import React, { useEffect, useState } from 'react'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import * as Yup from 'yup'
 import { createTask } from '../../Redux/actions/taskActions'
-import notify from '../../notification/notify'
 import { ToastContainer } from 'react-toastify'
 import flatpickr from 'flatpickr'
 import Swal from 'sweetalert2'
 import SideNavbar from '../../components/SideNavbar'
 import TopNavbar from "../../components/TopNavbar";
+import { useNavigate } from 'react-router-dom'
+import { createNotification } from '../../Redux/actions/notificationsAction'
 
 
 const NewTaskPage = () => {
   const dispatch=useDispatch();
-  
-  function handleSubmit(date) {
-    dispatch(createTask({
-      "code":date.code,
-      "department":date.department,
-      "subject":date.subject,
-      "info":date.info,
-      "notes":date.notes,
-      "status":date.status,
-      "sent":date.sent,
-      "completed":date.completed,
-      "userId":date.userId,
-      "registration_date":selectedDate
-    }))
-    notify('تم اضافة التاسك بنجاح','success')
-    Swal.fire({
-      title:'good job'
-    })
-    setTimeout(()=>{
-      window.location.reload('false')
-    },2000)
+  const navigate =useNavigate();
+  const [load,setLoad]=useState(false);
+  const [input, setInput] = useState('');
+  const [ws, setWs] = useState(null);
+  const socket = new WebSocket('ws://localhost:8000');
+  const current_user=JSON.parse(localStorage.getItem('user'));
+  const task=useSelector(state=>state.taskReducer.createTask)
+  async function handleSubmit(date) {
+      await dispatch(createTask({
+        "code":date.code,
+        "department":date.department,
+        "subject":date.subject,
+        "info":date.info,
+        "notes":date.notes,
+        "registration_date":selectedDate
+      }))
+      await dispatch(createNotification({
+        "user_id":current_user._id,
+        "sender_name":current_user.username,
+        "message":date.info,
+        "message_type":"alert-info",
+      }))
+      setLoad(true)
+      setInput("new task is created")
+      
   }
+  
+useEffect(()=>{
+  if(load){
+    if(task.status===200){
+      Swal.fire({
+        title: 'تم التحقق!',
+        text: 'جارى الآن معالجة البيانات.',
+        icon: 'success',
+        showConfirmButton: false,
+        timer: 2500, 
+        timerProgressBar: true,
+        allowOutsideClick:false,
+        allowEscapeKey: false,
+      })
+
+      setTimeout(() => {
+        navigate('/allTasks')
+      }, 1500)
+
+      if (input.trim() !== '') {
+        ws.send(input);
+        setInput('');
+      }
+
+    }else{
+      Swal.fire({
+        title: 'خطأ!',
+        text: 'الكود اللذي ادخلته موجود بالفعل',
+        icon: 'error',
+        showConfirmButton: false,
+      })
+      setTimeout(() => {
+        window.location.reload(false);
+      }, 1500)
+    }
+    dispatch({ type: 'RESET_CREATE_TASK' });
+  }
+},[load])
 
   let validationSchema = Yup.object({
-    // registration_date: Yup.string().required('is Required'),
     code: Yup.string().required('is Required'),
     department: Yup.string().required('is Required'),
     subject: Yup.string().required('is Required'),
     info: Yup.string().required('is Required'),
     notes: Yup.string().required('is Required'),
-    status: Yup.string().required('is Required'),
-    userId: Yup.string().required('is Required'),
-    sent: Yup.string().required('is Required'),
-    completed: Yup.string().required('is Required'),
   })
 
 
@@ -61,10 +99,6 @@ const NewTaskPage = () => {
       subject: "",
       info: "",
       notes: "",
-      status: "",
-      userId: "",
-      sent: "",
-      completed: "",
     },
     onSubmit: handleSubmit,
     validationSchema
@@ -73,6 +107,10 @@ const NewTaskPage = () => {
   const [selectedDate, setSelectedDate] = useState(null);
 
   useEffect(() => {
+    socket.onopen = () => {
+      setWs(socket);
+    };
+    
     const flatpickrInstance = flatpickr('#registration_date', {
       dateFormat: 'Y-m-d',
       onChange: (selectedDates, dateString, instance) => {
@@ -95,8 +133,7 @@ const NewTaskPage = () => {
                 <div className="card p-3 border-radius-xl bg-white js-active"
                     data-animation="FadeIn">
 
-                  <form onSubmit={Formik.handleSubmit}>
-
+                  <form className='rtl' onSubmit={Formik.handleSubmit}>
                     <div className='mb-3 rtl'>
                       <label htmlFor='registration_date'>تاريخ التسجيل</label>
                       <input
@@ -111,17 +148,6 @@ const NewTaskPage = () => {
                           <div className='alert alert-danger'>{Formik.errors.registration_date}</div>
                       ) : ('')}
                     </div>
-
-
-                    {/* <div className='mb-3'>
-                      <label htmlFor='company_name' style={{float: 'right'}}>اسم الشركة</label>
-                      <input onBlur={Formik.handleBlur} onChange={Formik.handleChange} className='form-control  '
-                             style={{direction: 'rtl'}} name='company_name' type='text' id='company_name'></input>
-                      {(Formik.errors.company_name && Formik.touched.company_name) ?
-                          <div className='alert alert-danger'>{Formik.errors.company_name}</div>
-                          : ""}
-                    </div> */}
-
 
                     <div className='mb-3'>
                       <label htmlFor='code' style={{float: 'right'}}>الكود</label>
@@ -144,7 +170,7 @@ const NewTaskPage = () => {
 
 
                     <div className='mb-3'>
-                      <label htmlFor='subject' style={{float: 'right'}}>العنوان</label>
+                      <label htmlFor='subject' style={{float: 'right'}}>الموضوع</label>
                       <input onBlur={Formik.handleBlur} onChange={Formik.handleChange} className='form-control  '
                              name='subject' type='text' id='subject'></input>
                       {(Formik.errors.subject && Formik.touched.subject) ?
@@ -153,7 +179,7 @@ const NewTaskPage = () => {
                     </div>
 
                     <div className='mb-3'>
-                      <label htmlFor='info' style={{float: 'right'}}>البيانات</label>
+                      <label htmlFor='info' style={{float: 'right'}}>التفاصيل</label>
                       <input onBlur={Formik.handleBlur} onChange={Formik.handleChange} className='form-control  '
                              name='info' type='text' id='info'></input>
                       {(Formik.errors.info && Formik.touched.info) ?
@@ -170,125 +196,10 @@ const NewTaskPage = () => {
                           : ""}
                     </div>
 
-                    <div className='mb-3'>
-                        <label htmlFor='status' style={{float: 'right'}}>الحالة</label>
-                        <select
-                          
-                          onBlur={Formik.handleBlur}
-                          onChange={Formik.handleChange}
-                          className='form-select rtl px-5'
-                          name='status'
-                          id='status'
-                          value={Formik.values.status}
-                        >
-                          <option value=''>اختر الحالة</option>
-                          <option value='pending'>انتظار</option>
-                          <option value='accepted'>مقبول</option>
-                          <option value='rejected'>مرفوض</option>
-                        </select>
-                        {(Formik.errors.status && Formik.touched.status) && (
-                          <div className='alert alert-danger'>{Formik.errors.status}</div>
-                        )}
-                      </div>
-
-
-                    <div className='mb-3'>
-                      <label htmlFor='userId' style={{float: 'right'}}>اسم المستخدم</label>
-                      <input onBlur={Formik.handleBlur} onChange={Formik.handleChange} className='form-control  '
-                             name='userId' type='text' id='userId'></input>
-                      {(Formik.errors.userId && Formik.touched.userId) ?
-                          <div className='alert alert-danger'>{Formik.errors.userId}</div>
-                          : ""}
-                    </div>
-
-                    <div className='mb-3'>
-                      <label htmlFor='sent' style={{float: 'right'}}>تم الإرسال ؟ </label>
-                      <br/>
-                      <div style={{display:'flex',width:'95%',justifyContent:'space-between'}}>
-                      <div>
-                        <input
-                          onBlur={Formik.handleBlur}
-                          onChange={Formik.handleChange}
-                          className='form-check-input'
-                          name='sent'
-                          type='radio'
-                          id='sent_true'
-                          style={{border: '1px solid gray'}}
-                          value='true'
-                          checked={Formik.values.sent === 'true'}
-                        />
-                        <label className='form-check-label' htmlFor='sent_true'>True</label>
-                      </div>
-                      <div>
-                        <input
-                          onBlur={Formik.handleBlur}
-                          onChange={Formik.handleChange}
-                          className='form-check-input'
-                          name='sent'
-                          type='radio'
-                          style={{border: '1px solid gray'}}
-                          id='sent_false'
-                          value='false'
-                          checked={Formik.values.sent === 'false'}
-                        />
-                        <label className='form-check-label' htmlFor='sent_false'>False</label>
-                      </div>
-                      </div>
-                      {Formik.errors.sent && Formik.touched.sent && (
-                        <div className='alert alert-danger'>{Formik.errors.sent}</div>
-                      )}
-                    </div>
-
-                    
-                    <div className='mb-3'>
-                      <label htmlFor='completed' style={{float: 'right'}}>مكتمل ؟ </label>
-                      <br/>
-                      <div style={{display:'flex',width:'95%',justifyContent:'space-between'}}>
-                      <div>
-                        <input
-                          onBlur={Formik.handleBlur}
-                          onChange={Formik.handleChange}
-                          className='form-check-input'
-                          name='completed'
-                          type='radio'
-                          id='completed_true'
-                          style={{border: '1px solid gray'}}
-                          value='true'
-                          checked={Formik.values.completed === 'true'}
-                        />
-                        <label className='form-check-label' htmlFor='completed_true'>True</label>
-                      </div>
-                      <div>
-                        <input
-                          onBlur={Formik.handleBlur}
-                          onChange={Formik.handleChange}
-                          className='form-check-input'
-                          name='completed'
-                          type='radio'
-                          style={{border: '1px solid gray'}}
-                          id='completed_false'
-                          value='false'
-                          checked={Formik.values.completed === 'false'}
-                        />
-                        <label className='form-check-label' htmlFor='completed_false'>False</label>
-                      </div>
-                      </div>
-                      {Formik.errors.completed && Formik.touched.completed && (
-                        <div className='alert alert-danger'>{Formik.errors.completed}</div>
-                      )}
-                    </div>
-
-
-
-                  
-
-
-                    
-
                     <button type='submit' className='btn btn-success mt-3' style={{float: 'right'}}>حفظ المعلومات
                     </button>
                   </form>
-                                  </div>
+                  </div>
 
                 </div>
             </main>

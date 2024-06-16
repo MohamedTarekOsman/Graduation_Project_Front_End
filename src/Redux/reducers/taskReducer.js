@@ -1,7 +1,8 @@
 import {CREATE_TASK, DELETE_TASK, GET_ALL_TASKS,GET_ONE_TASK,UPDATE_TASK} from '../types'
 
 const inial={
-    task:[]
+    task:[],
+    createTask:[],
 }
 
 const taskReducer=(state=inial,action)=>{
@@ -9,7 +10,7 @@ const taskReducer=(state=inial,action)=>{
         case CREATE_TASK:
             return {
                 ...state,
-                task:action.payload,
+                createTask:action.payload,
             }
         case DELETE_TASK:
         return {
@@ -31,6 +32,11 @@ const taskReducer=(state=inial,action)=>{
             ...state,
             task:action.payload,
         }
+        case 'RESET_CREATE_TASK':
+            return {
+                ...state,
+                createTask: [],
+            };
         default:
             return state;
     }

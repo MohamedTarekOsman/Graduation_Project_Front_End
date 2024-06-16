@@ -41,7 +41,7 @@ export const createAttendance=(formData)=>async (dispatch)=>{
 //get one Attendance with id
 export const getOneAttendance=(id)=>async (dispatch)=>{
     try{
-        const response=await useGetDataToken(`/api/v1/attendance/${id}`);
+        const response=await useGetDataToken(`/attendance/${id}`);
         dispatch({
             type:GET_ONE_ATTENDANCE,
             payload:response,
@@ -59,7 +59,7 @@ export const getOneAttendance=(id)=>async (dispatch)=>{
 //delete Attendance with id
 export const deleteAttendance=(id)=>async (dispatch)=>{
     try{
-        const response=await useDeleteData(`/api/v1/attendance/${id}`);
+        const response=await useDeleteData(`/attendance/${id}`);
         dispatch({
             type:DELETE_ATTENDANCE,
             payload:response,
@@ -76,7 +76,7 @@ export const deleteAttendance=(id)=>async (dispatch)=>{
 //update Attendance with id
 export const updateAttendance=(id,formdata)=>async (dispatch)=>{
     try{
-        const response=await useUpdateData(`/api/v1/attendance/${id}`,formdata);
+        const response=await useUpdateData(`/attendance/${id}`,formdata);
         dispatch({
             type:UPDATE_ATTENDANCE,
             payload:response,

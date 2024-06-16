@@ -4,12 +4,15 @@ import SideNavbar from '../../components/SideNavbar'
 import TopNavbar from '../../components/TopNavbar'
 import { useDispatch, useSelector } from 'react-redux'
 import { getAllWallet } from '../../Redux/actions/walletAction'
+import { getAllTasks } from '../../Redux/actions/taskActions'
 const Wallet = () => {
     const dispatch=useDispatch()
+    const alltasks=useSelector(state=>state.taskReducer.task)
     const wallet=useSelector(state=>state.walletReducer.wallet)
   useEffect(()=>{
     const getWallets=async()=>{
     await dispatch(getAllWallet())
+    await dispatch(getAllTasks())
     }
     getWallets()
   },[])
@@ -21,94 +24,94 @@ const Wallet = () => {
         <TopNavbar/>
         <div className='container py-4'>
         <div className="row align-items-center ">
-            <div className="col-xl-3 col-md-6">
-              <div className="card card-stats">
-        
-                <div className="card-body">
-                  <div className="row">
+        <div className="col-xl-3 col-md-6 mt-2">
+        <div className="card card-stats">
+            <div className="card-body">
+                <div className="row">
                     <div className="col">
-                      <h5 className="card-title text-uppercase text-muted mb-0">إجمالي المهام</h5>
-                      <span className="h3 font-weight-bold mb-0">7</span>
+                        <h5 className="card-title text-uppercase text-muted mb-0">الإجمالي</h5>
+                        <span className="h3 font-weight-bold mb-0">{
+                            Array.isArray(alltasks.data) && alltasks.data.length > 0 ?(
+                                alltasks.data.length
+                            ):""
+                            }</span>
                     </div>
                     <div className="col-auto">
-                      <div className="icon icon-shape bg-gradient-red text-white rounded-circle shadow">
-                        <i className="ni ni-active-40"></i>
-                      </div>
+                        <div className="icon icon-shape bg-gradient-primary shadow-primary text-center rounded-circle">
+                            <i className="fas fa-chart-pie text-lg opacity-10" aria-hidden="true"></i>
+                        </div>
                     </div>
-                  </div>
-                  <p className="mt-3 mb-0 text-sm">
-                    <span className="text-success mr-2"><i className="fa fa-arrow-up"></i> 3.48%</span>
-                    <span className="text-nowrap">Since last month</span>
-                  </p>
                 </div>
-              </div>
+                <p className="mt-3 mb-0 text-sm"></p>
             </div>
-            <div className="col-xl-3 col-md-6">
-              <div className="card card-stats">
-              
-                <div className="card-body">
-                  <div className="row">
+        </div>
+    </div>
+    <div className="col-xl-3 col-md-6 mt-2">
+        <div className="card card-stats">
+            <div className="card-body">
+                <div className="row">
                     <div className="col">
-                      <h5 className="card-title text-uppercase text-muted mb-0">مهام لم ترسل</h5>
-                      <span className="h3 font-weight-bold mb-0">2</span>
+                        <h5 className="card-title text-uppercase text-muted mb-0">لم ترسل</h5>
+                        <span className="h3 font-weight-bold mb-0">{
+                            Array.isArray(alltasks.data) && alltasks.data.length > 0 ?(
+                                alltasks.data.filter((item)=>item.sent===false).length
+                            ):""
+                            }</span>
                     </div>
                     <div className="col-auto">
-                      <div className="icon icon-shape bg-gradient-orange text-white rounded-circle shadow">
-                        <i className="ni ni-chart-pie-35"></i>
-                      </div>
+                        <div className="icon icon-shape bg-gradient-warning shadow-warning text-center rounded-circle">
+                            <i className="fas fa-paper-plane text-lg opacity-10" aria-hidden="true"></i>
+                        </div>
                     </div>
-                  </div>
-                  <p className="mt-3 mb-0 text-sm">
-                    <span className="text-success mr-2"><i className="fa fa-arrow-up"></i> 3.48%</span>
-                    <span className="text-nowrap">Since last month</span>
-                  </p>
                 </div>
-              </div>
+                <p className="mt-3 mb-0 text-sm"></p>
             </div>
-            <div className="col-xl-3 col-md-6">
-              <div className="card card-stats">
-               
-                <div className="card-body">
-                  <div className="row">
+        </div>
+    </div>
+    <div className="col-xl-3 col-md-6 mt-2">
+        <div className="card card-stats">
+            <div className="card-body">
+                <div className="row">
                     <div className="col">
-                      <h5 className="card-title text-xs text-muted mb-0 ">مهام في انظار القبول او الرفض</h5>
-                      <span className="h3 font-weight-bold mb-0">5</span>
+                        <h5 className="card-title text-muted mb-0" style={{fontSize:'18.2px'}}>في انظار القبول او الرفض</h5>
+                        <span className="h3 font-weight-bold mb-0">{
+                            Array.isArray(alltasks.data) && alltasks.data.length > 0 ?(
+                                alltasks.data.filter((item)=>item.status==="pending").length
+                            ):""
+                            }</span>
                     </div>
                     <div className="col-auto">
-                      <div className="icon icon-shape bg-gradient-green text-white rounded-circle shadow">
-                        <i className="ni ni-money-coins"></i>
-                      </div>
+                        <div className="icon icon-shape bg-gradient-success shadow-success text-center rounded-circle">
+                            <i className="fas fa-hourglass-half text-lg opacity-10" aria-hidden="true"></i>
+                        </div>
                     </div>
-                  </div>
-                  <p className="mt-3 mb-0 text-sm">
-                    <span className="text-success mr-2"><i className="fa fa-arrow-up"></i> 3.48%</span>
-                    <span className="text-nowrap">Since last month</span>
-                  </p>
                 </div>
-              </div>
+                <p className="mt-3 mb-0 text-sm"></p>
             </div>
-            <div className="col-xl-3 col-md-6">
-              <div className="card card-stats">
-       
-                <div className="card-body">
-                  <div className="row">
+        </div>
+    </div>
+    <div className="col-xl-3 col-md-6 mt-2">
+        <div className="card card-stats">
+            <div className="card-body">
+                <div className="row">
                     <div className="col">
-                      <h5 className="card-title text-uppercase text-muted mb-0">المهام المكتمله</h5>
-                      <span className="h3 font-weight-bold mb-0">6</span>
+                        <h5 className="card-title text-uppercase text-muted mb-0">المكتمله</h5>
+                        <span className="h3 font-weight-bold mb-0">{
+                            Array.isArray(alltasks.data) && alltasks.data.length > 0 ?(
+                                alltasks.data.filter((item)=>item.completed==="true").length
+                            ):""
+                            }</span>
                     </div>
                     <div className="col-auto">
-                      <div className="icon icon-shape bg-gradient-info text-white rounded-circle shadow">
-                        <i className="ni ni-chart-bar-32"></i>
-                      </div>
+                        <div className="icon icon-shape bg-gradient-danger shadow-danger text-center rounded-circle">
+                            <i className="fas fa-check-circle text-lg opacity-10" aria-hidden="true"></i>
+                        </div>
                     </div>
-                  </div>
-                  <p className="mt-3 mb-0 text-sm">
-                    <span className="text-success mr-2"><i className="fa fa-arrow-up"></i> 3.48%</span>
-                    <span className="text-nowrap">Since last month</span>
-                  </p>
                 </div>
-              </div>
+                <p className="mt-3 mb-0 text-sm"></p>
             </div>
+        </div>
+    </div>
         </div>
         </div>
         <div className="container my-5 bg-white">

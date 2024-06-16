@@ -11,6 +11,7 @@ import NotificationPage from "./pages/home/NotificationPage";
 import NotesPage from "./pages/home/NotesPage";
 import Attendance from "./pages/Attendance/Attendance";
 import AttendanceCalender from "./pages/Attendance/AttendanceCalender";
+
 function App() {
   return (
     <>
@@ -24,7 +25,7 @@ function App() {
       <Route path="/wallet" element={ <Wallet/>} />
       <Route path="/notifications" element={ <NotificationPage/>} />
       <Route path="/notes" element={ <NotesPage/>} />
-      <Route path="/attendance" element={ <Attendance/>} />
+      <Route path="/alluser" element={ <Attendance/>} />
       <Route path="/attendanceCalender" element={ <AttendanceCalender/>} />
     </Routes>
     </>

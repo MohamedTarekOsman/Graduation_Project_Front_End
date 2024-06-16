@@ -26941,3 +26941,10 @@ pre[class*="language-"] {
 .fc-day {  
   font-size: 12px;
 }
+.alert-custom{
+  position: relative;
+  padding: 1rem 1rem;
+  margin-bottom: 1rem;
+  border: 0 solid transparent;
+  border-radius: .375rem
+ }

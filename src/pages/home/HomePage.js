@@ -2,34 +2,154 @@
 
 import React, { useEffect, useState } from 'react'
 import { Calendar } from 'fullcalendar'
-
+import { IoTrashBin } from "react-icons/io5";
 import { useDispatch, useSelector } from 'react-redux'
 import { getAllTasks } from '../../Redux/actions/taskActions'
 import SideNavbar from '../../components/SideNavbar'
 import TopNavbar from '../../components/TopNavbar'
+import Swal from 'sweetalert2'
+import flatpickr from 'flatpickr'
+import { createNote, deleteNote, getAllNotes } from '../../Redux/actions/noteAction'
 const HomePage = () => {
+  const user=JSON.parse(localStorage.getItem('user'))
   const dispatch=useDispatch()
   const alltasks=useSelector(state=>state.taskReducer.task)
+  const allnotes=useSelector(state=>state.noteReducer.notes)
   const [dataLoaded, setDataLoaded] = useState(false);
+  function padNumber(number) {
+    return (number < 10 ? '0' : '') + number;
+}
+function addPrivateNote() {
+  // Display the form inside SweetAlert
+  Swal.fire({
+      title: 'تسجيل ملاحظة خاصة',
+      html:
+          '<div style="text-align: right; direction: rtl;">' +
+          '<textarea id="noteContent" class="swal2-input text-md font-weight-bold " style="outline:none;width:100%;height:100px" placeholder="محتوى الملاحظة" style="width: 90%; height: 100px;"></textarea>' +
+          '<div class="mb-3 d-flex rtl align-items-center input-group input-group-outline " style="width: 76%;">'+
+          '<label for="date_and_time" class="me-2" style="width: 70px;">التاريخ والوقت:</label>' +
+          '<input type="text" id="date_and_time" name="date_and_time" class="form-control flatpickr text-md text-success"  required>'+
+          '</div>'+
+          '</div>',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'اضافة ملاحظة',
+    allowOutsideClick: false,
+      allowEscapeKey: false,
+      customClass: {
+          textarea: 'custom-textarea'
+      },
+      didOpen: function () {
+          // Initialize Flatpicker in the SweetAlert modal
+          flatpickr("#date_and_time", {
+              enableTime: true,
+              dateFormat: "Y-m-d H:i",
+          });
+      },preConfirm: function () {
+          const noteContent = document.getElementById('noteContent').value;
+          const date_and_time = document.getElementById('date_and_time').value;
+
+          if (!date_and_time || !noteContent) {
+              Swal.showValidationMessage('الرجاء ملء جميع الحقول اولا');
+              return false;
+          }
+
+          // Convert the selected date_and_time to a JavaScript Date object
+          const selectedDateTime = new Date(date_and_time);
+
+          // Get the current time
+          const currentDateTime = new Date();
+
+          // Check if the selected date_and_time is greater than the current time
+          if (selectedDateTime <= currentDateTime) {
+              Swal.showValidationMessage('الرجاء اختيار وقت مستقبلي أكبر من الوقت الحالي.');
+              return false;
+          }
+
+          return { date_and_time, noteContent };
+      },
+
+  }).then((result) => {
+      if (result.isConfirmed) {
+          const noteContent = document.getElementById('noteContent').value;
+          const date_and_time = document.getElementById('date_and_time').value;
+          try{
+          dispatch(createNote({
+            "user_id":user._id,
+            "content":noteContent,
+            "datetime":date_and_time
+          }))
+          Swal.fire({
+            title: 'عملية ناجحة',
+            text: 'تم تسجيل ملاحظة خاصة بنجاح.',
+            icon: 'success',
+        showConfirmButton: false,
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        timer: 1500,
+        timerProgressBar: true
+        }).then(()=>{
+          dispatch(getAllNotes())
+        });}catch(e){
+          Swal.fire({
+            title: 'خطأ!',
+            text: e,
+            icon: 'error',
+        });
+        }
+      }
+  });
+}
+const deletePrivateNote=(id) => {
+  dispatch(deleteNote(id))
+  Swal.fire({
+    title: 'عملية ناجحة',
+    text: 'تمت ازالة الملاحظه بنجاح',
+    icon: 'success',
+    showConfirmButton: false,
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    timer: 1500,
+    timerProgressBar: true
+}).then(()=>{
+  dispatch(getAllNotes())
+})
+}
+
   useEffect(() => {
     const getTasks=async()=>{
       await dispatch(getAllTasks())
+      await dispatch(getAllNotes())
       setDataLoaded(true);
     }
     getTasks()
     const calendarEl = document.getElementById('calendar')
     const calendar = new Calendar(calendarEl, {
-      events: alltasks && alltasks.data ? 
+      events: Array.isArray(alltasks.data) && alltasks.data.length > 0  ? 
           alltasks.data.map((item, index) => ({
               start: item.registration_date,
-              title: item.code
+              title: `${item.subject} - كود (${item.code})`
           })) : [{
               start: '',
               title: ''
           }]
+          ,
+          eventClick: function(info) {
+            var startDate = info.event.start;
+            var formattedDate = startDate.getFullYear() + '-' + padNumber(startDate.getMonth() + 1) + '-' + padNumber(startDate.getDate());
+
+            Swal.fire({
+                title: info.event.title,
+                text: 'Start Date: ' + formattedDate,
+                icon: 'info',
+            });
+        }
   });
   if (dataLoaded) {
     calendar.render()
+    console.log(allnotes)
+    console.log(alltasks)
   }
    
   }, [dataLoaded])
@@ -43,344 +163,165 @@ const HomePage = () => {
 
     <main class="main-content position-relative border-radius-lg "> 
     <TopNavbar/>
-    <div className="header bg-primary pb-6">
+    <div className="header bg-primary pb-3">
       <div className='container py-4'>
-        <div className="row align-items-center ">
-            <div className="col-xl-3 col-md-6">
-              <div className="card card-stats">
-        
-                <div className="card-body">
-                  <div className="row">
+      <div className="row align-items-center">
+    <div className="col-xl-3 col-md-6 mt-2">
+        <div className="card card-stats">
+            <div className="card-body">
+                <div className="row">
                     <div className="col">
-                      <h5 className="card-title text-uppercase text-muted mb-0">إجمالي المهام</h5>
-                      <span className="h3 font-weight-bold mb-0">7</span>
+                        <h5 className="card-title text-uppercase text-muted mb-0">الإجمالي</h5>
+                        <span className="h3 font-weight-bold mb-0">{
+                            Array.isArray(alltasks.data) && alltasks.data.length > 0 ?(
+                                alltasks.data.length
+                            ):""
+                            }</span>
                     </div>
                     <div className="col-auto">
-                    <div class="icon icon-shape bg-gradient-primary shadow-primary text-center rounded-circle">
-                    <i class="ni ni-money-coins text-lg opacity-10" aria-hidden="true"></i>
-                  </div>
+                        <div className="icon icon-shape bg-gradient-primary shadow-primary text-center rounded-circle">
+                            <i className="fas fa-chart-pie text-lg opacity-10" aria-hidden="true"></i>
+                        </div>
                     </div>
-                  </div>
-                  <p className="mt-3 mb-0 text-sm">
-                    <span className="text-success mr-2"><i className="fa fa-arrow-up"></i> 3.48%</span>
-                    <span className="text-nowrap">Since last month</span>
-                  </p>
                 </div>
-              </div>
-            </div>
-            <div className="col-xl-3 col-md-6">
-              <div className="card card-stats">
-              
-                <div className="card-body">
-                  <div className="row">
-                    <div className="col">
-                      <h5 className="card-title text-uppercase text-muted mb-0">مهام لم ترسل</h5>
-                      <span className="h3 font-weight-bold mb-0">2</span>
-                    </div>
-                    <div className="col-auto">
-                    <div class="icon icon-shape bg-gradient-warning shadow-warning text-center rounded-circle">
-                    <i class="ni ni-cart text-lg opacity-10" aria-hidden="true"></i>
-                  </div>
-                    </div>
-                  </div>
-                  <p className="mt-3 mb-0 text-sm">
-                    <span className="text-success mr-2"><i className="fa fa-arrow-up"></i> 3.48%</span>
-                    <span className="text-nowrap">Since last month</span>
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="col-xl-3 col-md-6">
-              <div className="card card-stats">
-               
-                <div className="card-body">
-                  <div className="row">
-                    <div className="col">
-                      <h5 className="card-title text-xs text-muted mb-0 ">مهام في انظار القبول او الرفض</h5>
-                      <span className="h3 font-weight-bold mb-0">5</span>
-                    </div>
-                    <div className="col-auto">
-                    <div class="icon icon-shape bg-gradient-success shadow-success text-center rounded-circle">
-                    <i class="ni ni-paper-diploma text-lg opacity-10" aria-hidden="true"></i>
-                  </div>
-                    </div>
-                  </div>
-                  <p className="mt-3 mb-0 text-sm">
-                    <span className="text-success mr-2"><i className="fa fa-arrow-up"></i> 3.48%</span>
-                    <span className="text-nowrap">Since last month</span>
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="col-xl-3 col-md-6">
-              <div className="card card-stats">
-       
-                <div className="card-body">
-                  <div className="row">
-                    <div className="col">
-                      <h5 className="card-title text-uppercase text-muted mb-0">المهام المكتمله</h5>
-                      <span className="h3 font-weight-bold mb-0">6</span>
-                    </div>
-                    <div className="col-auto">
-                    <div class="icon icon-shape bg-gradient-danger shadow-danger text-center rounded-circle">
-                    <i class="ni ni-world text-lg opacity-10" aria-hidden="true"></i>
-                  </div>
-                    </div>
-                  </div>
-                  <p className="mt-3 mb-0 text-sm">
-                    <span className="text-success mr-2"><i className="fa fa-arrow-up"></i> 3.48%</span>
-                    <span className="text-nowrap">Since last month</span>
-                  </p>
-                </div>
-              </div>
+                <p className="mt-3 mb-0 text-sm"></p>
             </div>
         </div>
+    </div>
+    <div className="col-xl-3 col-md-6 mt-2">
+        <div className="card card-stats">
+            <div className="card-body">
+                <div className="row">
+                    <div className="col">
+                        <h5 className="card-title text-uppercase text-muted mb-0">لم ترسل</h5>
+                        <span className="h3 font-weight-bold mb-0">{
+                            Array.isArray(alltasks.data) && alltasks.data.length > 0 ?(
+                                alltasks.data.filter((item)=>item.sent===false).length
+                            ):""
+                            }</span>
+                    </div>
+                    <div className="col-auto">
+                        <div className="icon icon-shape bg-gradient-warning shadow-warning text-center rounded-circle">
+                            <i className="fas fa-paper-plane text-lg opacity-10" aria-hidden="true"></i>
+                        </div>
+                    </div>
+                </div>
+                <p className="mt-3 mb-0 text-sm"></p>
+            </div>
+        </div>
+    </div>
+    <div className="col-xl-3 col-md-6 mt-2">
+        <div className="card card-stats">
+            <div className="card-body">
+                <div className="row">
+                    <div className="col">
+                        <h5 className="card-title text-muted mb-0" style={{fontSize:'18.2px'}}>في انظار القبول او الرفض</h5>
+                        <span className="h3 font-weight-bold mb-0">{
+                            Array.isArray(alltasks.data) && alltasks.data.length > 0 ?(
+                                alltasks.data.filter((item)=>item.status==="pending").length
+                            ):""
+                            }</span>
+                    </div>
+                    <div className="col-auto">
+                        <div className="icon icon-shape bg-gradient-success shadow-success text-center rounded-circle">
+                            <i className="fas fa-hourglass-half text-lg opacity-10" aria-hidden="true"></i>
+                        </div>
+                    </div>
+                </div>
+                <p className="mt-3 mb-0 text-sm"></p>
+            </div>
+        </div>
+    </div>
+    <div className="col-xl-3 col-md-6 mt-2">
+        <div className="card card-stats">
+            <div className="card-body">
+                <div className="row">
+                    <div className="col">
+                        <h5 className="card-title text-uppercase text-muted mb-0">المكتمله</h5>
+                        <span className="h3 font-weight-bold mb-0">{
+                            Array.isArray(alltasks.data) && alltasks.data.length > 0 ?(
+                                alltasks.data.filter((item)=>item.completed==="true").length
+                            ):""
+                            }</span>
+                    </div>
+                    <div className="col-auto">
+                        <div className="icon icon-shape bg-gradient-danger shadow-danger text-center rounded-circle">
+                            <i className="fas fa-check-circle text-lg opacity-10" aria-hidden="true"></i>
+                        </div>
+                    </div>
+                </div>
+                <p className="mt-3 mb-0 text-sm"></p>
+            </div>
+        </div>
+    </div>
+</div>
+
         </div>
     </div>
     <div className="container-fluid mt--6">
       <div className="row">
         <div className="col-xl-8">
           <div className="card p-3" id='calendar'>
+          </div>
+        </div>
+        <div class="col-lg-4 col-md-6 mb-4 mb-lg-0">
+<div class="card h-100 ">
+<div class="card-header mb-3 p-3 pb-0 d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 text-md font-weight-bolder">ملاحظات خاصة</h6>
+            <button class="btn btn-outline-success btn-icon-only mb-0" id="addNoteBtn" onClick={addPrivateNote} style={{display: "block"}}>
+                <i class="material-icons text-sm font-weight-bold">+</i>
+            </button>
 
-          </div>
-        </div>
-        <div className="col-xl-4">
-          <div className="card">
-            <div className="card-header bg-transparent">
-              <div className="row align-items-center">
-                <div className="col">
-                  <h6 className="text-uppercase text-muted ls-1 mb-1">الملاحظات</h6>
-                  <h5 className="h3 mb-0">الملاحظات الخاصة</h5>
-                </div>
-              </div>
             </div>
-            <div className="card-body">
-    
-              <div className="chart">
-                <canvas id="chart-bars" className="chart-canvas"></canvas>
-              </div>
-            </div>
-          </div>
-        </div>
+<div class="card-body pt-0">
+<ul class="list-group list-group-flush" data-toggle="checklist">
+
+{
+  Array.isArray(allnotes.data) && allnotes.data.length > 0 ?(
+    allnotes.data.map((item,index)=><li class="checklist-entry list-group-item px-0">
+    <div class="checklist-item checklist-item-success checklist-item-checked d-flex">
+    <div class="checklist-info">
+    <h6 class="checklist-title mb-0">{item.content}</h6>
+    <small class="text-xs">{item.datetime}</small>
+    </div>
+    <div style={{cursor:"pointer"}} class="form-check my-auto ms-auto" onClick={()=>{deletePrivateNote(allnotes.data[index]._id)}}>
+    <IoTrashBin />
+    </div>
+    </div>
+    </li>)
+  ):""
+}
+
+</ul>
+</div>
+</div>
+</div>
       </div>
       <div className="row">
-        <div className="col-xl-8">
-          <div className="card">
-            <div className="card-header border-0">
-              <div className="row align-items-center">
-                <div className="col">
-                  <h3 className="mb-0">Page visits</h3>
-                </div>
-                <div className="col text-right">
-                  <a href="#!" className="btn btn-sm btn-primary">See all</a>
-                </div>
-              </div>
-            </div>
-            <div className="table-responsive">
-         
-              <table className="table align-items-center table-flush">
-                <thead className="thead-light">
-                  <tr>
-                    <th scope="col">Page name</th>
-                    <th scope="col">Visitors</th>
-                    <th scope="col">Unique users</th>
-                    <th scope="col">Bounce rate</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <th scope="row">
-                      /argon/
-                    </th>
-                    <td>
-                      4,569
-                    </td>
-                    <td>
-                      340
-                    </td>
-                    <td>
-                      <i className="fas fa-arrow-up text-success mr-3"></i> 46,53%
-                    </td>
-                  </tr>
-                  <tr>
-                    <th scope="row">
-                      /argon/index.html
-                    </th>
-                    <td>
-                      3,985
-                    </td>
-                    <td>
-                      319
-                    </td>
-                    <td>
-                      <i className="fas fa-arrow-down text-warning mr-3"></i> 46,53%
-                    </td>
-                  </tr>
-                  <tr>
-                    <th scope="row">
-                      /argon/charts.html
-                    </th>
-                    <td>
-                      3,513
-                    </td>
-                    <td>
-                      294
-                    </td>
-                    <td>
-                      <i className="fas fa-arrow-down text-warning mr-3"></i> 36,49%
-                    </td>
-                  </tr>
-                  <tr>
-                    <th scope="row">
-                      /argon/tables.html
-                    </th>
-                    <td>
-                      2,050
-                    </td>
-                    <td>
-                      147
-                    </td>
-                    <td>
-                      <i className="fas fa-arrow-up text-success mr-3"></i> 50,87%
-                    </td>
-                  </tr>
-                  <tr>
-                    <th scope="row">
-                      /argon/profile.html
-                    </th>
-                    <td>
-                      1,795
-                    </td>
-                    <td>
-                      190
-                    </td>
-                    <td>
-                      <i className="fas fa-arrow-down text-danger mr-3"></i> 46,53%
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
+        <div className="col-xl-12">
+        <div class="card mt-4">
+        <div class="card-header  rtl p-3">
+          <h5 class="mb-0 font-weight-bolder me-3">اشعارات بالمواضيع القريبه</h5>
         </div>
-        <div className="col-xl-4">
-          <div className="card">
-            <div className="card-header border-0">
-              <div className="row align-items-center">
-                <div className="col">
-                  <h3 className="mb-0">Social traffic</h3>
-                </div>
-                <div className="col text-right">
-                  <a href="#!" className="btn btn-sm btn-primary">See all</a>
-                </div>
-              </div>
-            </div>
-            <div className="table-responsive">
-           
-              <table className="table align-items-center table-flush">
-                <thead className="thead-light">
-                  <tr>
-                    <th scope="col">Referral</th>
-                    <th scope="col">Visitors</th>
-                    <th scope="col"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <th scope="row">
-                      Facebook
-                    </th>
-                    <td>
-                      1,480
-                    </td>
-                    <td>
-                      <div className="d-flex align-items-center">
-                        <span className="mr-2">60%</span>
-                        <div>
-                          <div className="progress">
-                            <div className="progress-bar bg-gradient-danger" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style={{width:'60%'}}></div>
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <th scope="row">
-                      Facebook
-                    </th>
-                    <td>
-                      5,480
-                    </td>
-                    <td>
-                      <div className="d-flex align-items-center">
-                        <span className="mr-2">70%</span>
-                        <div>
-                          <div className="progress">
-                            <div className="progress-bar bg-gradient-success" role="progressbar" aria-valuenow="70" aria-valuemin="0" aria-valuemax="100" style={{width:'70%'}}></div>
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <th scope="row">
-                      Google
-                    </th>
-                    <td>
-                      4,807
-                    </td>
-                    <td>
-                      <div className="d-flex align-items-center">
-                        <span className="mr-2">80%</span>
-                        <div>
-                          <div className="progress">
-                            <div className="progress-bar bg-gradient-primary" role="progressbar" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100" style={{width:'80%'}}></div>
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <th scope="row">
-                      Instagram
-                    </th>
-                    <td>
-                      3,678
-                    </td>
-                    <td>
-                      <div className="d-flex align-items-center">
-                        <span className="mr-2">75%</span>
-                        <div>
-                          <div className="progress">
-                            <div className="progress-bar bg-gradient-info" role="progressbar" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100" style={{width:'75%'}}></div>
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <th scope="row">
-                      twitter
-                    </th>
-                    <td>
-                      2,645
-                    </td>
-                    <td>
-                      <div className="d-flex align-items-center">
-                        <span className="mr-2">30%</span>
-                        <div>
-                          <div className="progress">
-                            <div className="progress-bar bg-gradient-warning" role="progressbar" aria-valuenow="30" aria-valuemin="0" aria-valuemax="100" style={{width:'30px'}}></div>
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
+        {
+            Array.isArray(alltasks.data) && alltasks.data.length > 0 ? (
+            alltasks.data.filter((item) => {
+            const registrationDate = new Date(item.registration_date);
+            const now = new Date();
+            const millisecondsInADay = 1000 * 60 * 60 * 24;
+            const threeDaysFromNow = now.getTime() + (3 * millisecondsInADay);
+            return registrationDate.getTime() <= threeDaysFromNow && registrationDate.getTime() >= now.getTime();
+      }).map((item, index) => (
+        <div class="alert-custom alert-danger alert-dismissible text-white" >
+            <span class="text-lg font-weight-bolder text-bold">{item.info} ,  كود : {item.code}</span>
         </div>
+      ))
+  ) : ""
+}
+        
+      </div>
+        </div>
+
       </div>
     </div>
   </main>
