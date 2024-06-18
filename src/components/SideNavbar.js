@@ -82,7 +82,7 @@ const SideNavbar = () => {
                         </Link>
                     </li>
                     <li className="nav-item">
-                        <Link className={location.pathname === '/messages' ? "nav-link active" : "nav-link"} to="/messages">
+                        <Link className={location.pathname === '/chat' ? "nav-link active" : "nav-link"} to="/chat">
                             <div className="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
                                 <i className="fas fa-envelope text-primary text-sm opacity-10"></i>
                             </div>

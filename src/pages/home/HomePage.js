@@ -303,6 +303,7 @@ const deletePrivateNote=(id) => {
         <div class="card-header  rtl p-3">
           <h5 class="mb-0 font-weight-bolder me-3">اشعارات بالمواضيع القريبه</h5>
         </div>
+        <div className='card-body'>
         {
             Array.isArray(alltasks.data) && alltasks.data.length > 0 ? (
             alltasks.data.filter((item) => {
@@ -312,12 +313,12 @@ const deletePrivateNote=(id) => {
             const threeDaysFromNow = now.getTime() + (3 * millisecondsInADay);
             return registrationDate.getTime() <= threeDaysFromNow && registrationDate.getTime() >= now.getTime();
       }).map((item, index) => (
-        <div class="alert-custom alert-danger alert-dismissible text-white" >
+        <div className="rtl alert-custom alert-danger alert-dismissible text-white" >
             <span class="text-lg font-weight-bolder text-bold">{item.info} ,  كود : {item.code}</span>
         </div>
       ))
   ) : ""
-}
+}</div>
         
       </div>
         </div>

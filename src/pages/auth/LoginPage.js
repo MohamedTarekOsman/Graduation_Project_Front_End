@@ -104,7 +104,7 @@ const LoginPage = () => {
                     <div class="input-group-prepend">
                       <span style={{height:"100%"}} class="input-group-text"><i class="ni ni-lock-circle-open"></i></span>
                     </div>
-                    <input class="form-control" value={password} onChange={(e)=>{setPassword(e.target.value)}} placeholder="Password" type="password"/>
+                    <input class="form-control " value={password} onChange={(e)=>{setPassword(e.target.value)}} placeholder="Password" type="password"/>
                   </div>
                 </div>
                 <div class="custom-control custom-control-alternative custom-checkbox">

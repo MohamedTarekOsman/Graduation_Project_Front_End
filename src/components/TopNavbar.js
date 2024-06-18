@@ -17,68 +17,83 @@ const TopNavbar = () => {
       console.log('WebSocket connection established');
     };
 
-    socket.onmessage = async function incoming(message) {
-      const text = await message.data.text();
-      setNotifications(prevNotifications => [...prevNotifications, text]);
+    socket.onmessage = function incoming(message) {
+      // Convert Blob to a readable string
+      message.data.text().then(data => {
+        try {
+          const parsedData = JSON.parse(data);
+          const receivedTask = parsedData.data;
+  
+          // Update notifications state
+          const updatedNotifications = [...notifications, receivedTask];
+          setNotifications(updatedNotifications);
+  
+          // Update local storage
+          localStorage.setItem('notifications', JSON.stringify(updatedNotifications));
+        } catch (error) {
+          console.error('Error parsing WebSocket message:', error);
+        }
+      }).catch(error => {
+        console.error('Error reading Blob data:', error);
+      });
     };
 
     return () => {
       socket.close();
     };
-  }, []);
-
-  // Update local storage when notifications change
-  useEffect(() => {
-    localStorage.setItem('notifications', JSON.stringify(notifications));
   }, [notifications]);
-
+  const notificationsdel=()=>{
+    if(localStorage.getItem('notifications')){
+      localStorage.removeItem('notifications');
+    }
+  }
   return (
-    <nav class="navbar navbar-main navbar-expand-lg px-0 mx-4 shadow-none border-radius-xl " id="navbarBlur" data-scroll="false">
-      <div class="container-fluid py-1 px-3">
+    <nav className="navbar navbar-main navbar-expand-lg px-0 mx-4 shadow-none border-radius-xl" id="navbarBlur" data-scroll="false">
+      <div className="container-fluid py-1 px-3">
         <nav aria-label="breadcrumb">
-          <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
-            <li class="breadcrumb-item text-sm"><a class="opacity-5 text-white" href="javascript:;">Pages</a></li>
-            <li class="breadcrumb-item text-sm text-white active" aria-current="page">Dashboard</li>
+          <ol className="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
+            <li className="breadcrumb-item text-sm"><a className="opacity-5 text-white" href="javascript:;">Pages</a></li>
+            <li className="breadcrumb-item text-sm text-white active" aria-current="page">Dashboard</li>
           </ol>
-          <h6 class="font-weight-bolder text-white mb-0">Dashboard</h6>
+          <h6 className="font-weight-bolder text-white mb-0">Dashboard</h6>
         </nav>
-        <div class="collapse navbar-collapse mt-sm-0 mt-2 me-md-0 me-sm-4" id="navbar">
-          <div class="ms-md-auto pe-md-3 d-flex align-items-center">
-            <div class="input-group">
-              <span class="input-group-text text-body"><i class="fas fa-search" aria-hidden="true"></i></span>
-              <input type="text" class="form-control" placeholder="Type here..." />
+        <div className="collapse navbar-collapse mt-sm-0 mt-2 me-md-0 me-sm-4" id="navbar">
+          <div className="ms-md-auto pe-md-3 d-flex align-items-center">
+            <div className="input-group">
+              <span className="input-group-text text-body"><i className="fas fa-search" aria-hidden="true"></i></span>
+              <input type="text" className="form-control" placeholder="Type here..." />
             </div>
           </div>
-          <ul class="navbar-nav  justify-content-end">
-            <li class="nav-item d-flex align-items-center">
-              <a href="#" class="nav-link text-white font-weight-bold px-0">
-                <i class="fa fa-user me-sm-1"></i>
+          <ul className="navbar-nav justify-content-end">
+            <li className="nav-item d-flex align-items-center">
+              <a href="#" className="nav-link text-white font-weight-bold px-0">
+                <i className="fa fa-user me-sm-1"></i>
               </a>
             </li>
-            <li class="nav-item px-3 d-flex align-items-center">
-              <Link to="/" class="nav-link text-white p-0">
-                <i class="fa fa-home fixed-plugin-button-nav cursor-pointer"></i>
+            <li className="nav-item px-3 d-flex align-items-center">
+              <Link to="/" className="nav-link text-white p-0">
+                <i className="fa fa-home fixed-plugin-button-nav cursor-pointer"></i>
               </Link>
             </li>
-            <li class="nav-item dropdown pe-2 d-flex align-items-center">
-              <a href="javascript:;" class="nav-link text-white p-0" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="fa fa-bell cursor-pointer"></i>
+            <li className="nav-item dropdown pe-2 d-flex align-items-center">
+              <a href="javascript:;" className="nav-link text-white p-0" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                <i className="fa fa-bell cursor-pointer"></i>
               </a>
-              <ul class="dropdown-menu  dropdown-menu-end  px-2 py-3 me-sm-n4" aria-labelledby="dropdownMenuButton">
-                {notifications.slice(0,4).map((item, index) => (
-                  <li class="mb-2" key={index}>
-                    <a class="dropdown-item border-radius-md" href="javascript:;">
-                      <div class="d-flex py-1">
-                        <div class="my-auto">
-                          <img src="./assets/img/team-2.jpg" class="avatar avatar-sm  me-3 " />
+              <ul className="dropdown-menu dropdown-menu-end px-2 py-3 me-sm-n4" aria-labelledby="dropdownMenuButton">
+                {notifications.slice(0, 4).map((item, index) => (
+                  <li className="mb-2" key={index}>
+                    <a className="dropdown-item border-radius-md" href="javascript:;">
+                      <div className="d-flex py-1">
+                        <div className="my-auto">
+                          <img src="./assets/img/team-2.jpg" className="avatar avatar-sm me-3" />
                         </div>
-                        <div class="d-flex flex-column justify-content-center">
-                          <h6 class="text-sm font-weight-normal mb-1">
-                            <span class="font-weight-bold">{item}</span> from Laur
+                        <div className="d-flex flex-column justify-content-center">
+                          <h6 className="text-sm font-weight-normal mb-1">
+                            <span className="font-weight-bold">Task Code: {item.code}</span>
                           </h6>
-                          <p class="text-xs text-secondary mb-0">
-                            <i class="fa fa-clock me-1"></i>
-                            13 minutes ago
+                          <p className="text-xs text-secondary mb-0">
+                            <i className="fa fa-clock me-1"></i>
+                            just now
                           </p>
                         </div>
                       </div>
@@ -86,9 +101,9 @@ const TopNavbar = () => {
                   </li>
                 ))}
                 <li>
-                  <Link class="dropdown-item border-radius-md " to="/notifications">
+                  <Link className="dropdown-item border-radius-md" to="/notifications">
                     <div className="d-flex py-1 justify-content-center align-items-center">
-                      <div className="d-flex flex-column ">
+                      <div className="d-flex flex-column" onClick={notificationsdel}>
                         <Link to="/notifications" className="text-sm font-weight-normal text-center mb-1">
                           View More
                         </Link>
@@ -97,7 +112,7 @@ const TopNavbar = () => {
                   </Link>
                 </li>
               </ul>
-              <div style={{backgroundColor:"red",width:"15px", height:"15px",fontSize:"10px",color:"white",textAlign:"center",borderRadius:"100%",marginTop:"-10px"}}>
+              <div style={{ backgroundColor: "red", width: "15px", height: "15px", fontSize: "10px", color: "white", textAlign: "center", borderRadius: "100%", marginTop: "-10px" }}>
                 {notifications.length}
               </div>
             </li>

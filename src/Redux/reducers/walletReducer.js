@@ -1,4 +1,4 @@
-import {GET_ALL_WALLETS} from '../types'
+import {CREATE_WALLET, GET_ALL_WALLETS} from '../types'
 
 const inial={
     wallet:[]
@@ -7,6 +7,11 @@ const inial={
 const walletReducer=(state=inial,action)=>{
     switch(action.type){
         case GET_ALL_WALLETS:
+            return {
+                ...state,
+                wallet:action.payload,
+            }
+        case CREATE_WALLET:
             return {
                 ...state,
                 wallet:action.payload,
