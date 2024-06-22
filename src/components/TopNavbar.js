@@ -10,7 +10,11 @@ const TopNavbar = () => {
     return storedNotifications ? JSON.parse(storedNotifications) : [];
   });
 
+  const [currentUser, setCurrentUser] = useState(null);
+
   useEffect(() => {
+    const storedUser = JSON.parse(localStorage.getItem('user'));
+    setCurrentUser(storedUser);
     const socket = new WebSocket('ws://localhost:8000');
 
     socket.onopen = () => {
@@ -22,14 +26,15 @@ const TopNavbar = () => {
       message.data.text().then(data => {
         try {
           const parsedData = JSON.parse(data);
-          const receivedTask = parsedData.data;
-  
+          let receivedTask = parsedData.data || parsedData;
+
+
           // Update notifications state
-          const updatedNotifications = [...notifications, receivedTask];
-          setNotifications(updatedNotifications);
-  
-          // Update local storage
-          localStorage.setItem('notifications', JSON.stringify(updatedNotifications));
+            const updatedNotifications = [...notifications, receivedTask];
+            setNotifications(updatedNotifications);
+
+            // Update local storage
+            localStorage.setItem('notifications', JSON.stringify(updatedNotifications));
         } catch (error) {
           console.error('Error parsing WebSocket message:', error);
         }
@@ -42,11 +47,13 @@ const TopNavbar = () => {
       socket.close();
     };
   }, [notifications]);
-  const notificationsdel=()=>{
-    if(localStorage.getItem('notifications')){
+
+  const notificationsdel = () => {
+    if (localStorage.getItem('notifications')) {
       localStorage.removeItem('notifications');
     }
   }
+
   return (
     <nav className="navbar navbar-main navbar-expand-lg px-0 mx-4 shadow-none border-radius-xl" id="navbarBlur" data-scroll="false">
       <div className="container-fluid py-1 px-3">
@@ -80,26 +87,47 @@ const TopNavbar = () => {
                 <i className="fa fa-bell cursor-pointer"></i>
               </a>
               <ul className="dropdown-menu dropdown-menu-end px-2 py-3 me-sm-n4" aria-labelledby="dropdownMenuButton">
-                {notifications.slice(0, 4).map((item, index) => (
-                  <li className="mb-2" key={index}>
-                    <a className="dropdown-item border-radius-md" href="javascript:;">
-                      <div className="d-flex py-1">
-                        <div className="my-auto">
-                          <img src="./assets/img/team-2.jpg" className="avatar avatar-sm me-3" />
-                        </div>
-                        <div className="d-flex flex-column justify-content-center">
-                          <h6 className="text-sm font-weight-normal mb-1">
-                            <span className="font-weight-bold">Task Code: {item.code}</span>
-                          </h6>
-                          <p className="text-xs text-secondary mb-0">
-                            <i className="fa fa-clock me-1"></i>
-                            just now
-                          </p>
-                        </div>
-                      </div>
-                    </a>
-                  </li>
-                ))}
+                {currentUser && currentUser.role === 'admin'
+                  ? notifications.slice(0, 4).map((item, index) => (
+                      <li className="mb-2" key={index}>
+                        <a className="dropdown-item border-radius-md" href="javascript:;">
+                          <div className="d-flex py-1">
+                            <div className="my-auto">
+                              <img src="./assets/img/team-2.jpg" className="avatar avatar-sm me-3" />
+                            </div>
+                            <div className="d-flex flex-column justify-content-center">
+                              <h6 className="text-sm font-weight-normal mb-1">
+                                <span className="font-weight-bold">Task Code: {item.code}</span>
+                              </h6>
+                              <p className="text-xs text-secondary mb-0">
+                                <i className="fa fa-clock me-1"></i>
+                                just now
+                              </p>
+                            </div>
+                          </div>
+                        </a>
+                      </li>
+                    ))
+                  : currentUser && notifications.slice(0, 4).filter(item => item.userId == currentUser._id).map((item, index) => (
+                      <li className="mb-2" key={index}>
+                        <a className="dropdown-item border-radius-md" href="javascript:;">
+                          <div className="d-flex py-1">
+                            <div className="my-auto">
+                              <img src="./assets/img/team-2.jpg" className="avatar avatar-sm me-3" />
+                            </div>
+                            <div className="d-flex flex-column justify-content-center">
+                              <h6 className="text-sm font-weight-normal mb-1">
+                                <span className="font-weight-bold">Task Code: {item.code}</span>
+                              </h6>
+                              <p className="text-xs text-secondary mb-0">
+                                <i className="fa fa-clock me-1"></i>
+                                just now
+                              </p>
+                            </div>
+                          </div>
+                        </a>
+                      </li>
+                    ))}
                 <li>
                   <Link className="dropdown-item border-radius-md" to="/notifications">
                     <div className="d-flex py-1 justify-content-center align-items-center">
@@ -113,7 +141,11 @@ const TopNavbar = () => {
                 </li>
               </ul>
               <div style={{ backgroundColor: "red", width: "15px", height: "15px", fontSize: "10px", color: "white", textAlign: "center", borderRadius: "100%", marginTop: "-10px" }}>
-                {notifications.length}
+                {currentUser
+                  ? currentUser.role === 'admin'
+                    ? notifications.length
+                    : notifications.filter(item => item.userId === currentUser._id).length
+                  : 0}
               </div>
             </li>
           </ul>

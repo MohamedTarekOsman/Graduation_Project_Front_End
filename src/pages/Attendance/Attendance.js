@@ -1,32 +1,62 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useEffect, useState } from 'react';
-import SideNavbar from '../../components/SideNavbar';
-import TopNavbar from '../../components/TopNavbar';
-import { useDispatch, useSelector } from 'react-redux';
-import { DataTable } from 'simple-datatables';
-import { deleteUser, getAllUsers, updateUser } from '../../Redux/actions/usersAction';
-import { getAllTasks, updateTask } from '../../Redux/actions/taskActions'; // Import updateTask action
-import Swal from 'sweetalert2';
+import React, { useEffect, useState } from "react";
+import SideNavbar from "../../components/SideNavbar";
+import TopNavbar from "../../components/TopNavbar";
+import { useDispatch, useSelector } from "react-redux";
+import { DataTable } from "simple-datatables";
+import {
+  deleteUser,
+  getAllUsers,
+  updateUser,
+} from "../../Redux/actions/usersAction";
+import { getAllTasks, getOneTask, updateTask } from "../../Redux/actions/taskActions"; // Import updateTask action
+import Swal from "sweetalert2";
+import { createNotification } from "../../Redux/actions/notificationsAction";
 
 const Attendance = () => {
   const [dataLoaded, setDataLoaded] = useState(false);
+  const [onedataLoaded, setOneDataLoaded] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState(null);
+  const [currentUser,SetCurrentUser]=useState(null);
+  const [formData, setFormData] = useState({
+    first_name: "",
+    last_name: "",
+    username: "",
+    role: "",
+    password: "",
+  });
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+
   const dispatch = useDispatch();
   const allusers = useSelector((state) => state.userReducer.user);
   const alltasks = useSelector((state) => state.taskReducer.task);
-
+  const onetask = useSelector((state) => state.taskReducer.oneTask);
+  const [ws, setWs] = useState(null);
   useEffect(() => {
+    SetCurrentUser(JSON.parse(localStorage.getItem('user')))
     const getUsers = async () => {
       await dispatch(getAllUsers());
       await dispatch(getAllTasks());
       setDataLoaded(true);
     };
     getUsers();
-  }, []);
+    const socket = new WebSocket('ws://localhost:8000');
 
+    socket.onopen = () => {
+      setWs(socket);
+    };
+
+    return () => {
+      if (ws) {
+        ws.close();
+      }
+    };
+  }, []);
+  
+  
   useEffect(() => {
     if (dataLoaded) {
-      console.log(allusers);
-      const dataTable = new DataTable('#myTable', {
+      const dataTable = new DataTable("#myTable", {
         searchable: true,
       });
 
@@ -36,9 +66,9 @@ const Attendance = () => {
     }
   }, [dataLoaded]);
 
-  const SendTask = (selecteduser) => {
+  const SendTask = async(selecteduser) => {
     Swal.fire({
-      title: 'اختر كود المهمة',
+      title: "اختر كود المهمة",
       html: `
         <style>
           .swal-container {
@@ -66,69 +96,94 @@ const Attendance = () => {
         </div>
       `,
       didOpen: function () {
-        var missionSelect = document.getElementById('Mission_name');
-        var container_height = document.getElementById('swal2-html-container');
-        container_height.style.height = '200px';
-
+        var missionSelect = document.getElementById("Mission_name");
+        var container_height = document.getElementById("swal2-html-container");
+        container_height.style.height = "200px";
+  
         if (dataLoaded) {
-          alltasks.data.filter(item => item.sent === false).forEach(function (task) {
-            var option = document.createElement('option');
-            option.value = task._id; // Assuming _id is the unique identifier for tasks
-            option.textContent = task.code.split('(')[1]?.split(')')[0] || task.code;
-            missionSelect.appendChild(option);
-          });
+          alltasks.data
+            .filter((item) => item.sent === false)
+            .forEach(function (task) {
+              var option = document.createElement("option");
+              option.value = JSON.stringify(task);
+              option.textContent =
+                task.code.split("(")[1]?.split(")")[0] || task.code;
+              missionSelect.appendChild(option);
+            });
         }
       },
       inputAttributes: {
-        autocapitalize: 'off',
+        autocapitalize: "off",
       },
       showCancelButton: true,
-      confirmButtonText: 'Send',
+      confirmButtonText: "Send",
       showLoaderOnConfirm: true,
-      preConfirm: () => {
-        const selectedTaskId = document.getElementById('Mission_name').value;
-        dispatch(updateTask(selectedTaskId,{
-          sent: true,
-          userId:selecteduser._id,
-        }))
-        console.log(selecteduser)
+      preConfirm: async() => {
+        const selectedTaskString = document.getElementById("Mission_name").value;
+        const selectedTask = JSON.parse(selectedTaskString);
+        await dispatch(
+          updateTask(selectedTask._id, {
+            userId: selecteduser._id,
+            sent: true,
+          })
+        ).then(() => {
+          dispatch(getAllTasks());
+        });
+  
+        await dispatch(
+          createNotification({
+            user_id: selecteduser._id,
+            sender_name: currentUser.username,
+            message: selectedTask.info,
+            message_type: "alert-info",
+          })
+        );
+        
+        await dispatch(getOneTask(selectedTask._id));
+        setOneDataLoaded(true)
+        // Check for onetask.data existence and WebSocket connection
       },
       allowOutsideClick: () => !Swal.isLoading(),
     }).then((result) => {
       if (result.isConfirmed) {
         if (result.value) {
-          dispatch(updateTask(result.value)).then(() => {
-            Swal.fire({
-              title: 'Success!',
-              text: 'تم ارسال الموضوع بنجاح',
-              icon: 'success',
-            }).then(()=>{
-              dispatch(getAllTasks())
-            })
-          }).catch(() => {
-            Swal.fire({
-              title: 'Error',
-              text: 'Failed to send subject',
-              icon: 'error',
-            });
+          Swal.fire({
+            title: "Success!",
+            text: "تم ارسال الموضوع بنجاح",
+            icon: "success",
+          }).then(() => {
+            dispatch(getAllTasks());
           });
         } else {
           Swal.fire({
-            title: 'Error',
-            text: 'Failed to send subject',
-            icon: 'error',
+            title: "Error",
+            text: "Failed to send subject",
+            icon: "error",
           });
         }
       }
     });
   };
+  useEffect(()=>{
+    if (onedataLoaded===true && ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({
+        data: onetask.data
+      }));
+    } else {
+      console.error('WebSocket connection is not open');
+    }
+  },[onedataLoaded])
+
+  
+  
+  
 
   const deleteuser = async (id) => {
     await dispatch(deleteUser(id));
     Swal.fire({
-      title: 'عملية ناجحة',
-      text: 'تم ازالة الحساب بنجاح',
-      icon: 'success',
+      title: "عملية ناجحة",
+      text: "تم ازالة الحساب بنجاح",
+      icon: "success",
       showConfirmButton: false,
       allowOutsideClick: false,
       allowEscapeKey: false,
@@ -139,15 +194,6 @@ const Attendance = () => {
     });
   };
 
-  const [selectedUserId, setSelectedUserId] = useState(null);
-  const [formData, setFormData] = useState({
-    first_name: '',
-    last_name: '',
-    username: '',
-    role: '',
-    password: '',
-  });
-
   const handleEditButtonClick = (user) => {
     setSelectedUserId(user._id);
     setFormData({
@@ -155,20 +201,40 @@ const Attendance = () => {
       last_name: user.last_name,
       username: user.username,
       role: user.role,
-      password: '',
+      password: "",
     });
+    setIsChangingPassword(false); // Reset to false when general edit button is clicked
+  };
+
+  const handleEditPasswordClick = (user) => {
+    setSelectedUserId(user._id);
+    setFormData({
+      first_name: "",
+      last_name: "",
+      username: "",
+      role: "",
+      password: "",
+    });
+    setIsChangingPassword(true); // Set to true when change password button is clicked
   };
 
   const updateuser = async () => {
     const updatedFormData = { ...formData };
-    if (!formData.password) {
-      delete updatedFormData.password;
+
+    if (isChangingPassword) {
+      // Handle password update separately
+      await dispatch(
+        updateUser(selectedUserId, { password: updatedFormData.password })
+      );
+    } else {
+      // Handle general user information update
+      await dispatch(updateUser(selectedUserId, updatedFormData));
     }
-    await dispatch(updateUser(selectedUserId, updatedFormData));
+
     Swal.fire({
-      title: 'عملية ناجحة',
-      text: 'تم تعديل بيانات الحساب بنجاح',
-      icon: 'success',
+      title: "عملية ناجحة",
+      text: "تم تعديل بيانات الحساب بنجاح",
+      icon: "success",
       showConfirmButton: false,
       allowOutsideClick: false,
       allowEscapeKey: false,
@@ -176,12 +242,14 @@ const Attendance = () => {
       timerProgressBar: true,
     }).then(() => {
       setFormData({
-        first_name: '',
-        last_name: '',
-        username: '',
-        role: '',
-        password: '',
+        first_name: "",
+        last_name: "",
+        username: "",
+        role: "",
+        password: "",
       });
+      setIsChangingPassword(false); // Reset to false after update
+      setSelectedUserId(null);
       dispatch(getAllUsers());
     });
   };
@@ -208,58 +276,63 @@ const Attendance = () => {
                 <th className="bg-success text-white ">الاسم</th>
               </thead>
               <tbody id="tableData">
-                {Array.isArray(allusers.data) && allusers.data.length > 0 ? (
-                  allusers.data.map((item, index) => (
-                    <tr key={index}>
-                      {item.role === 'admin' ? (
-                        <td>
-                          <button type="button" className="btn btn-primary">
-                            اذهب ل اعدادات الادمن
-                          </button>
-                        </td>
-                      ) : (
-                        <td>
-                          <button
-                            type="button"
-                            className="btn btn-warning mx-2"
-                            onClick={() => SendTask(item)}
-                          >
-                            ارسال مهمة
-                          </button>
+                {Array.isArray(allusers.data) && allusers.data.length > 0
+                  ? allusers.data.map((item, index) => (
+                      <tr key={index}>
+                        {item.role === "admin" ? (
+                          <td>
+                            
+                          </td>
+                        ) : (
+                          <td>
+                            <button
+                              type="button"
+                              className="btn btn-warning mx-2"
+                              onClick={() => SendTask(item)}
+                            >
+                              ارسال مهمة
+                            </button>
 
-                          <button
-                            type="button"
-                            className="btn btn-danger mx-2"
-                            onClick={() => deleteuser(item._id)}
-                          >
-                            حذف
-                          </button>
-                          <button
-                            type="button"
-                            className="btn btn-success"
-                            data-bs-toggle="modal"
-                            data-bs-target="#exampleModal"
-                            onClick={() => handleEditButtonClick(item)}
-                          >
-                            تعديل
-                          </button>
+                            <button
+                              type="button"
+                              className="btn btn-danger"
+                              onClick={() => deleteuser(item._id)}
+                            >
+                              حذف
+                            </button>
+                            <button
+                              type="button"
+                              className="btn btn-success mx-2"
+                              data-bs-toggle="modal"
+                              data-bs-target="#exampleModal"
+                              onClick={() => handleEditButtonClick(item)}
+                            >
+                              تعديل
+                            </button>
+                            <button
+                              type="button"
+                              className="btn btn-primary "
+                              data-bs-toggle="modal"
+                              data-bs-target="#exampleModal"
+                              onClick={() => handleEditPasswordClick(item)}
+                            >
+                              تعديل كلمة السر
+                            </button>
+                          </td>
+                        )}
+                        <td className="">
+                          {new Date(item.updatedAt).getDate()}/
+                          {new Date(item.updatedAt).getMonth() + 1}/
+                          {new Date(item.updatedAt).getFullYear()}
                         </td>
-                      )}
-                      <td className="">
-                        {new Date(item.updatedAt).getDate()}/
-                        {new Date(item.updatedAt).getMonth() + 1}/
-                        {new Date(item.updatedAt).getFullYear()}
-                      </td>
-                      <td className="">{item.username}</td>
-                      <td className="">{item.role}</td>
-                      <td className="">
-                        {item.first_name} {item.last_name}
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  ''
-                )}
+                        <td className="">{item.username}</td>
+                        <td className="">{item.role}</td>
+                        <td className="">
+                          {item.first_name} {item.last_name}
+                        </td>
+                      </tr>
+                    ))
+                  : ""}
               </tbody>
             </table>
           </div>
@@ -275,93 +348,145 @@ const Attendance = () => {
             <div className="modal-dialog">
               <div className="modal-content">
                 <div className="modal-header">
-                  <h1 className="modal-title fs-5 text-center" id="exampleModalLabel">
-                    Edit User
+                  <h1
+                    className="modal-title fs-5 text-center"
+                    id="exampleModalLabel"
+                  >
+                    {isChangingPassword ? "Change Password" : "Edit User"}
                   </h1>
-                  <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-</div>
-<div className="modal-body">
-  <div className="mb-3">
-    <label htmlFor="formGroupExampleInput" className="form-label text-muted">
-      الاسم الاول
-    </label>
-    <input
-      type="text"
-      className="form-control"
-      id="formGroupExampleInput"
-      value={formData.first_name}
-      onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
-    />
-  </div>
-  <div className="mb-3">
-    <label htmlFor="formGroupExampleInput" className="form-label text-muted">
-      الاسم الاخير
-    </label>
-    <input
-      type="text"
-      className="form-control"
-      id="formGroupExampleInput"
-      value={formData.last_name}
-      onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
-    />
-  </div>
-  <div className="mb-3">
-    <label htmlFor="formGroupExampleInput" className="form-label text-muted">
-      اسم المستخدم
-    </label>
-    <input
-      type="text"
-      className="form-control"
-      id="formGroupExampleInput"
-      value={formData.username}
-      onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-    />
-  </div>
-
-  <div className="mb-3">
-    <label htmlFor="formGroupExampleInput" className="form-label text-muted">
-      كلمة السر
-    </label>
-    <input
-      type="password"
-      className="form-control"
-      id="formGroupExampleInput"
-      value={formData.password}
-      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-    />
-  </div>
-  <div>
-    <p className="text-muted">الدور</p>
-    <select
-      className="form-select"
-      aria-label="Default select example"
-      value={formData.role}
-      onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-    >
-      <option value="" disabled>
-        Open this select menu
-      </option>
-      <option value="admin">ادمن</option>
-      <option value="manager">مدير</option>
-      <option value="employee">موظف</option>
-    </select>
-  </div>
-</div>
-<div className="modal-footer">
-  <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">
-    Cancel
-  </button>
-  <button type="button" className="btn btn-primary" data-bs-dismiss="modal" onClick={updateuser}>
-    Save
-  </button>
-</div>
-</div>
-</div>
-</div>
-</div>
-</main>
-</>
-);
+                  <button
+                    type="button"
+                    className="btn-close"
+                    data-bs-dismiss="modal"
+                    aria-label="Close"
+                  ></button>
+                </div>
+                <div className="modal-body">
+                  {isChangingPassword ? (
+                    <div className="mb-3">
+                      <label
+                        htmlFor="formGroupExampleInput"
+                        className="form-label text-muted"
+                      >
+                        كلمة السر الجديدة
+                      </label>
+                      <input
+                        type="password"
+                        className="form-control"
+                        id="formGroupExampleInput"
+                        value={formData.password}
+                        onChange={(e) =>
+                          setFormData({ ...formData, password: e.target.value })
+                        }
+                      />
+                    </div>
+                  ) : (
+                    <>
+                      <div className="mb-3">
+                        <label
+                          htmlFor="formGroupExampleInput"
+                          className="form-label text-muted"
+                        >
+                          الاسم الاول
+                        </label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          id="formGroupExampleInput"
+                          value={formData.first_name}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              first_name: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                      <div className="mb-3">
+                        <label
+                          htmlFor="formGroupExampleInput"
+                          className="form-label text-muted"
+                        >
+                          الاسم الاخير
+                        </label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          id="formGroupExampleInput"
+                          value={formData.last_name}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              last_name: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                      <div className="mb-3">
+                        <label
+                          htmlFor="formGroupExampleInput"
+                          className="form-label text-muted"
+                        >
+                          اسم المستخدم
+                        </label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          id="formGroupExampleInput"
+                          value={formData.username}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              username: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                      <div>
+                        <p className="text-muted">الدور</p>
+                        <select
+                          className="form-select"
+                          aria-label="Default select example"
+                          value={formData.role}
+                          onChange={(e) =>
+                            setFormData({ ...formData, role: e.target.value })
+                          }
+                        >
+                          <option value="" disabled>
+                            Open this select menu
+                          </option>
+                          <option value="admin">ادمن</option>
+                          <option value="manager">مدير</option>
+                          <option value="employee">موظف</option>
+                        </select>
+                      </div>
+                    </>
+                  )}
+                </div>
+                <div className="modal-footer">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    data-bs-dismiss="modal"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    data-bs-dismiss="modal"
+                    onClick={updateuser}
+                  >
+                    Save
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </>
+  );
 };
 
 export default Attendance;

@@ -80,7 +80,6 @@ export const updateTask=(id,formdata)=>async (dispatch)=>{
         dispatch({
             type:UPDATE_TASK,
             payload:response,
-            loading:true
         })
     }catch(e){
         dispatch({

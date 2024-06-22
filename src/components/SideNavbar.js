@@ -1,12 +1,17 @@
+/* eslint-disable eqeqeq */
 /* eslint-disable jsx-a11y/anchor-is-valid */
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import logo from '../images/logo.png'
 
 const SideNavbar = () => {
     const location = useLocation();
     const navigate = useNavigate();
-
+    const [currentUser, setCurrentUser] = useState(null);
+    useEffect(()=>{
+        const storedUser = JSON.parse(localStorage.getItem('user'));
+        setCurrentUser(storedUser);
+    },[])
     const handleLogout = () => {
         localStorage.removeItem('user');
         localStorage.removeItem('token');
@@ -33,14 +38,14 @@ const SideNavbar = () => {
                             <span className="nav-link-text">الرئيسية</span>
                         </Link>
                     </li>
-                    <li className="nav-item">
+                    {currentUser?.role=="admin"|| currentUser?.role=="manager"?<li className="nav-item">
                         <Link className={location.pathname === '/newTask' ? "nav-link active" : "nav-link"} to="/newTask">
                             <div className="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
                                 <i className="fas fa-plus-square text-primary text-sm opacity-10"></i>
                             </div>
                             <span className="nav-link-text">مهمة جديدة</span>
                         </Link>
-                    </li>
+                    </li>:""}
                     <li className="nav-item">
                         <Link className={location.pathname === '/allTasks' ? "nav-link active" : "nav-link"} to="/allTasks">
                             <div className="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
@@ -49,30 +54,30 @@ const SideNavbar = () => {
                             <span className="nav-link-text">عرض جميع المهام</span>
                         </Link>
                     </li>
-                    <li className="nav-item">
+                    {currentUser?.role=="admin" || currentUser?.role=="manager"?<li className="nav-item">
                         <Link className={location.pathname === '/wallet' ? "nav-link active" : "nav-link"} to="/wallet">
                             <div className="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
                                 <i className="fas fa-wallet text-primary text-sm opacity-10"></i>
                             </div>
                             <span className="nav-link-text">الخزنة</span>
                         </Link>
-                    </li>
-                    <li className="nav-item">
+                    </li>:""}
+                    {currentUser?.role=="admin"?<li className="nav-item">
                         <Link className={location.pathname === '/addUser' ? "nav-link active" : "nav-link"} to="/addUser">
                             <div className="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
                                 <i className="fas fa-user-plus text-primary text-sm opacity-10"></i>
                             </div>
                             <span className="nav-link-text">اضافة مستخدم</span>
                         </Link>
-                    </li>
-                    <li className="nav-item">
+                    </li>:""}
+                    {currentUser?.role=="admin"|| currentUser?.role=="manager"?<li className="nav-item">
                         <Link className={location.pathname === '/alluser' ? "nav-link active" : "nav-link"} to="/alluser">
                             <div className="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
                                 <i className="fas fa-users-cog text-primary text-sm opacity-10"></i>
                             </div>
                             <span className="nav-link-text">ادارة المستخدمين</span>
                         </Link>
-                    </li>
+                    </li>:""}
                     <li className="nav-item">
                         <Link className={location.pathname === '/attendanceCalender' ? "nav-link active" : "nav-link"} to="/attendanceCalender">
                             <div className="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">

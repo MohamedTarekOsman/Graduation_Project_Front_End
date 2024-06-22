@@ -50,8 +50,8 @@ const AllTasks = () => {
             allowEscapeKey: false,
             timer: 1500,
             timerProgressBar: true
-        }).then(async () => {
-            await dispatch(getAllTasks());
+        }).then(() => {
+            window.location.reload();
         });
     }
 
@@ -99,6 +99,7 @@ const AllTasks = () => {
                                         <th className='bg-success text-white text-center'>العنوان</th>
                                         <th className='bg-success text-white text-center'>التفاصيل</th>
                                         <th className='bg-success text-white text-center'>الملاحظات</th>
+                                        <th className='bg-success text-white text-center'>الحالة</th>
                                         <th className='bg-success text-white text-center'>الإجراء</th>
                                     </tr>
                                 </thead>
@@ -112,8 +113,10 @@ const AllTasks = () => {
                                                 <td>{item.subject}</td>
                                                 <td>{item.info}</td>
                                                 <td>{item.notes}</td>
+                                                <td>قيد الإنتظار</td>
                                                 <td>
-                                                    <button type="button" className="btn btn-primary btn-remove" data-id={item._id}>حذف</button>
+                                                    <button type="button" className="btn btn-primary btn-edit" data-id={item._id}>تعديل</button>
+                                                    <button type="button" className="btn btn-danger btn-remove mx-2" data-id={item._id}>حذف</button>
                                                 </td>
                                             </tr>
                                         ))

@@ -129,12 +129,12 @@ const Wallet = () => {
                 <TopNavbar />
                 <div className='container py-4'>
                     <div className="row align-items-center ">
-                        <div className="col-xl-3 col-md-6 mt-2">
+                        <div className="col-xl-6 col-md-6 mt-2">
                             <div className="card card-stats">
                                 <div className="card-body">
                                     <div className="row">
                                         <div className="col">
-                                            <h5 className="card-title text-uppercase text-muted mb-0">الإجمالي</h5>
+                                            <h5 className="card-title text-uppercase text-muted mb-0">إجمالي المهام</h5>
                                             <span className="h3 font-weight-bold mb-0">
                                                 {Array.isArray(alltasks.data) && alltasks.data.length > 0 ? (
                                                     alltasks.data.length
@@ -151,16 +151,17 @@ const Wallet = () => {
                                 </div>
                             </div>
                         </div>
-                        <div className="col-xl-3 col-md-6 mt-2">
+                        <div className="col-xl-6 col-md-6 mt-2">
                             <div className="card card-stats">
                                 <div className="card-body">
                                     <div className="row">
                                         <div className="col">
-                                            <h5 className="card-title text-uppercase text-muted mb-0">لم ترسل</h5>
+                                            <h5 className="card-title text-uppercase text-muted mb-0">إجمالي التكلفة</h5>
                                             <span className="h3 font-weight-bold mb-0">
-                                                {Array.isArray(alltasks.data) && alltasks.data.length > 0 ? (
+                                                {/* {Array.isArray(alltasks.data) && alltasks.data.length > 0 ? (
                                                     alltasks.data.filter((item) => item.sent === false).length
-                                                ) : ""}
+                                                ) : ""} */}
+                                                6580532 <span style={{fontWeight:"bold"}}>EGP</span>
                                             </span>
                                         </div>
                                         <div className="col-auto">
@@ -173,50 +174,7 @@ const Wallet = () => {
                                 </div>
                             </div>
                         </div>
-                        <div className="col-xl-3 col-md-6 mt-2">
-                            <div className="card card-stats">
-                                <div className="card-body">
-                                    <div className="row">
-                                        <div className="col">
-                                            <h5 className="card-title text-muted mb-0" style={{ fontSize: '18.2px' }}>في انظار القبول او الرفض</h5>
-                                            <span className="h3 font-weight-bold mb-0">
-                                                {Array.isArray(alltasks.data) && alltasks.data.length > 0 ? (
-                                                    alltasks.data.filter((item) => item.status === "pending").length
-                                                ) : ""}
-                                            </span>
-                                        </div>
-                                        <div className="col-auto">
-                                            <div className="icon icon-shape bg-gradient-success shadow-success text-center rounded-circle">
-                                                <i className="fas fa-hourglass-half text-lg opacity-10" aria-hidden="true"></i>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <p className="mt-3 mb-0 text-sm"></p>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="col-xl-3 col-md-6 mt-2">
-                            <div className="card card-stats">
-                                <div className="card-body">
-                                    <div className="row">
-                                        <div className="col">
-                                            <h5 className="card-title text-uppercase text-muted mb-0">المكتمله</h5>
-                                            <span className="h3 font-weight-bold mb-0">
-                                                {Array.isArray(alltasks.data) && alltasks.data.length > 0 ? (
-                                                    alltasks.data.filter((item) => item.completed === "true").length
-                                                ) : ""}
-                                            </span>
-                                        </div>
-                                        <div className="col-auto">
-                                            <div className="icon icon-shape bg-gradient-danger shadow-danger text-center rounded-circle">
-                                                <i className="fas fa-check-circle text-lg opacity-10" aria-hidden="true"></i>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <p className="mt-3 mb-0 text-sm"></p>
-                                </div>
-                            </div>
-                        </div>
+                        
                     </div>
                 </div>
                 <div className="container my-5 bg-white">
@@ -238,19 +196,26 @@ const Wallet = () => {
                             <table id='wallet-table' className="table table-dark table-striped table-bordered text-center">
                                 <thead className=''>
                                     <tr>
+                                    <th className="bg-dark">الإجراء</th>
                                         <th className="bg-dark">المستلم</th>
                                         <th className="bg-dark">المبلغ</th>
                                         <th className="bg-dark">التاريخ</th>
                                         <th className="bg-dark">الكود</th>
+                                        
                                     </tr>
                                 </thead>
                                 <tbody id="tableData">
                                     {Array.isArray(wallet.data) && wallet.data.length > 0 && wallet.data.map((walletItem, index) => (
                                         <tr key={index}>
+                                            <td>
+                                                    <button type="button" className="btn btn-primary " >تعديل</button>
+                                                    <button type="button" className="btn btn-danger  mx-2" >حذف</button>
+                                            </td>
                                             <td>{walletItem.receiver}</td>
                                             <td>{walletItem.amount_received_from_customer}</td>
                                             <td>{formatDate(walletItem.updatedAt)}</td>
                                             <td>{walletItem.code}</td>
+                                            
                                         </tr>
                                     ))}
                                 </tbody>

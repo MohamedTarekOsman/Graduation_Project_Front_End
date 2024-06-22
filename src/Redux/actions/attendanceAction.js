@@ -27,7 +27,6 @@ export const createAttendance=(formData)=>async (dispatch)=>{
         dispatch({
             type:CREATE_ATTENDANCE,
             payload:response,
-            loading:true
         })
     }catch(e){
         dispatch({

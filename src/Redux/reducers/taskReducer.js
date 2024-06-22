@@ -3,6 +3,7 @@ import {CREATE_TASK, DELETE_TASK, GET_ALL_TASKS,GET_ONE_TASK,UPDATE_TASK} from '
 const inial={
     task:[],
     createTask:[],
+    oneTask:[]
 }
 
 const taskReducer=(state=inial,action)=>{
@@ -25,7 +26,7 @@ const taskReducer=(state=inial,action)=>{
         case GET_ONE_TASK:
         return {
             ...state,
-            task:action.payload,
+            oneTask:action.payload,
         }
         case UPDATE_TASK:
         return {
