@@ -4,9 +4,9 @@ import { useDispatch, useSelector } from 'react-redux'
 import { getAllUsers } from '../../Redux/actions/usersAction'
 import SideNavbar from '../../components/SideNavbar'
 import TopNavbar from '../../components/TopNavbar'
-import {DataTable} from "simple-datatables"
+import DataTable from "datatables.net-dt"
 
-const AllUsers = () => {
+const All = () => {
     const [input,setInput]=useState("")
     const [dataLoaded, setDataLoaded] = useState(false);
     function search(){
@@ -82,4 +82,4 @@ const AllUsers = () => {
   )
 }
 
-export default AllUsers
+export default All

@@ -1,18 +1,23 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from 'react';
-import SideNavbar from '../../components/SideNavbar';
-import TopNavbar from '../../components/TopNavbar';
 import { useDispatch, useSelector } from 'react-redux';
-import { getAllWallet, createWallet } from '../../Redux/actions/walletAction';
+import { getAllWallet, createWallet, deleteWallet, updateWallet } from '../../Redux/actions/walletAction'; // Update with your specific actions
 import { getAllTasks } from '../../Redux/actions/taskActions';
 import Swal from 'sweetalert2';
-import { DataTable } from 'simple-datatables';
+import DataTable from 'datatables.net-dt';
+import SideNavbar from '../../components/SideNavbar';
+import TopNavbar from '../../components/TopNavbar';
+import Modal from 'react-bootstrap/Modal';
+import Button from 'react-bootstrap/Button';
 
 const Wallet = () => {
     const dispatch = useDispatch();
     const alltasks = useSelector(state => state.taskReducer.task);
     const wallet = useSelector(state => state.walletReducer.wallet);
     const [dataLoaded, setDataLoaded] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [editItem, setEditItem] = useState(null);
+    const [amountReceived, setAmountReceived] = useState('');
+    const [totalAmountReceived, setTotalAmountReceived] = useState(0);
 
     useEffect(() => {
         const getWallets = async () => {
@@ -23,7 +28,7 @@ const Wallet = () => {
             setDataLoaded(true);
         };
         getWallets();
-    }, []);
+    }, [dispatch]);
 
     useEffect(() => {
         if (dataLoaded) {
@@ -37,10 +42,19 @@ const Wallet = () => {
         }
     }, [dataLoaded]);
 
+    useEffect(() => {
+        if (wallet.data && wallet.data.length > 0) {
+            const totalAmount = wallet.data.reduce((acc, item) => acc + parseFloat(item.amount_received_from_customer || 0), 0);
+            setTotalAmountReceived(totalAmount);
+        } else {
+            setTotalAmountReceived(0);
+        }
+    }, [wallet.data]);
+
     const formatDate = (isoString) => {
         const date = new Date(isoString);
         const day = String(date.getDate()).padStart(2, '0');
-        const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
+        const month = String(date.getMonth() + 1).padStart(2, '0');
         const year = date.getFullYear();
         return `${day}/${month}/${year}`;
     };
@@ -122,6 +136,51 @@ const Wallet = () => {
         });
     };
 
+    const handleEdit = (walletItem) => {
+        setEditItem(walletItem);
+        setAmountReceived(walletItem.amount_received_from_customer || '');
+        setShowEditModal(true);
+    };
+
+    const saveEditedItem = () => {
+        if (!editItem) return; // Return if editItem is null or undefined
+
+        const updatedItem = {
+            ...editItem,
+            amount_received_from_customer: amountReceived,
+        };
+
+        dispatch(updateWallet(editItem._id, updatedItem)); // Pass editItem._id and updatedItem to updateWallet
+        setShowEditModal(false);
+        Swal.fire({
+            title: 'تم التعديل!',
+            text: 'تم تحديث السجل بنجاح.',
+            icon: 'success',
+        });
+        dispatch(getAllWallet());
+    };
+
+    const handleDelete = async (walletId) => {
+        Swal.fire({
+            title: 'هل أنت متأكد؟',
+            text: 'سيتم حذف هذا السجل نهائيًا!',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'نعم، احذف',
+            cancelButtonText: 'إلغاء',
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                await dispatch(deleteWallet(walletId));
+                Swal.fire({
+                    title: 'تم الحذف!',
+                    text: 'تم حذف السجل بنجاح.',
+                    icon: 'success',
+                });
+                dispatch(getAllWallet()); 
+            }
+        });
+    };
+
     return (
         <>
             <SideNavbar />
@@ -158,10 +217,7 @@ const Wallet = () => {
                                         <div className="col">
                                             <h5 className="card-title text-uppercase text-muted mb-0">إجمالي التكلفة</h5>
                                             <span className="h3 font-weight-bold mb-0">
-                                                {/* {Array.isArray(alltasks.data) && alltasks.data.length > 0 ? (
-                                                    alltasks.data.filter((item) => item.sent === false).length
-                                                ) : ""} */}
-                                                6580532 <span style={{fontWeight:"bold"}}>EGP</span>
+                                                {totalAmountReceived} <span style={{ fontWeight: "bold" }}>EGP</span>
                                             </span>
                                         </div>
                                         <div className="col-auto">
@@ -174,7 +230,7 @@ const Wallet = () => {
                                 </div>
                             </div>
                         </div>
-                        
+
                     </div>
                 </div>
                 <div className="container my-5 bg-white">
@@ -196,26 +252,25 @@ const Wallet = () => {
                             <table id='wallet-table' className="table table-dark table-striped table-bordered text-center">
                                 <thead className=''>
                                     <tr>
-                                    <th className="bg-dark">الإجراء</th>
+                                        <th className="bg-dark">الإجراء</th>
                                         <th className="bg-dark">المستلم</th>
                                         <th className="bg-dark">المبلغ</th>
                                         <th className="bg-dark">التاريخ</th>
                                         <th className="bg-dark">الكود</th>
-                                        
+
                                     </tr>
                                 </thead>
                                 <tbody id="tableData">
                                     {Array.isArray(wallet.data) && wallet.data.length > 0 && wallet.data.map((walletItem, index) => (
                                         <tr key={index}>
                                             <td>
-                                                    <button type="button" className="btn btn-primary " >تعديل</button>
-                                                    <button type="button" className="btn btn-danger  mx-2" >حذف</button>
+                                                <button type="button" className="btn btn-primary" onClick={() => handleEdit(walletItem)}>تعديل</button>
+                                                <button type="button" className="btn btn-danger mx-2" onClick={() => handleDelete(walletItem._id)}>حذف</button>
                                             </td>
                                             <td>{walletItem.receiver}</td>
                                             <td>{walletItem.amount_received_from_customer}</td>
                                             <td>{formatDate(walletItem.updatedAt)}</td>
                                             <td>{walletItem.code}</td>
-                                            
                                         </tr>
                                     ))}
                                 </tbody>
@@ -224,6 +279,35 @@ const Wallet = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Edit Modal */}
+            <Modal show={showEditModal} onHide={() => setShowEditModal(false)}>
+                <Modal.Header closeButton>
+                    <Modal.Title>تعديل السجل</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <div className="form-group">
+                        <label htmlFor="amount_received_from_customer">المبلغ المستلم:</label>
+                        <input
+                            type="number"
+                            className="form-control"
+                            id="amount_received_from_customer"
+                            value={amountReceived}
+                            onChange={(e) => setAmountReceived(e.target.value)}
+                            min="0"
+                            placeholder="Enter amount of money with Egyptian pound"
+                        />
+                    </div>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setShowEditModal(false)}>
+                        إلغاء
+                    </Button>
+                    <Button variant="primary" onClick={saveEditedItem}>
+                        حفظ التغييرات
+                    </Button>
+                </Modal.Footer>
+            </Modal>
         </>
     );
 };

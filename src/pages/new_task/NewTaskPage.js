@@ -41,6 +41,7 @@ const NewTaskPage = () => {
           user_id: current_user._id,
           sender_name: current_user.username,
           message: task.data.data.info,
+          task_code:task.data.data.code,
           message_type: "alert-info",
         }));
         Swal.fire({

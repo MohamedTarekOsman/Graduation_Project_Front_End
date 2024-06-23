@@ -5,13 +5,13 @@ import NewTaskPage from "./pages/new_task/NewTaskPage";
 import "flatpickr/dist/themes/material_green.css";
 import AddUserPage from "./pages/auth/AddUserPage";
 import AllTasks from "./pages/AllTasks/AllTasks";
-import AllUsers from "./pages/allUsers/AllUsers";
+import AllUsers from "./pages/Attendance/AllUsers";
 import Wallet from "./pages/Wallet/Wallet";
 import NotificationPage from "./pages/home/NotificationPage";
 import NotesPage from "./pages/home/NotesPage";
-import Attendance from "./pages/Attendance/Attendance";
 import AttendanceCalender from "./pages/Attendance/AttendanceCalender";
 import ChatPage from "./pages/Chat/ChatPage";
+import OneTask from "./pages/AllTasks/OneTask";
 
 function App() {
   return (
@@ -22,11 +22,13 @@ function App() {
       <Route path="/newTask" element={ <NewTaskPage/>} />
       <Route path="/addUser" element={ <AddUserPage/>} />
       <Route path="/allTasks" element={ <AllTasks/>} />
-      <Route path="/allUsers" element={ <AllUsers/>} />
+      <Route path="/oneTask" element={<OneTask />} />
+      {/* <Route path="/allTasks?taskcode=code" element={ <OneTask/>} /> */}
+      {/* <Route path="/allUsers" element={ <AllUsers/>} /> */}
       <Route path="/wallet" element={ <Wallet/>} />
       <Route path="/notifications" element={ <NotificationPage/>} />
       <Route path="/notes" element={ <NotesPage/>} />
-      <Route path="/alluser" element={ <Attendance/>} />
+      <Route path="/alluser" element={ <AllUsers/>} />
       <Route path="/attendanceCalender" element={ <AttendanceCalender/>} />
       <Route path="/chat" element={ <ChatPage/>} />
     </Routes>

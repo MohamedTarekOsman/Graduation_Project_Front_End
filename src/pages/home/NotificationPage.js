@@ -1,3 +1,5 @@
+/* eslint-disable eqeqeq */
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from 'react';
 import SideNavbar from '../../components/SideNavbar';
 import TopNavbar from '../../components/TopNavbar';
@@ -5,6 +7,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { deleteNotification, getAllNotification } from '../../Redux/actions/notificationsAction';
 import { IoTrashBin } from 'react-icons/io5';
 import Swal from 'sweetalert2';
+import { Link } from 'react-router-dom';
 
 const NotificationPage = () => {
   const dispatch = useDispatch();
@@ -59,7 +62,9 @@ useEffect(()=>{
                     notifications.data.map((item, index) => (
                       <div key={index} className={"alert text-white " + item.message_type} role="alert">
                         {item.message}
+                        <Link to={`/oneTask?taskcode=${item.task_code}`}>
                         <button type="button" className="btn btn-outline-white mx-4 mt-3">عرض التفاصيل</button>
+                        </Link>
                         <div style={{ cursor: "pointer", padding: "10px", marginTop: "10px", float: "left" }} className="form-check" onClick={() => { delNotification(item._id) }}>
                           <IoTrashBin style={{ width: "30px", height: "30px" }} />
                         </div>

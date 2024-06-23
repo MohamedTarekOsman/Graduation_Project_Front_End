@@ -1,17 +1,23 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useEffect, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { deleteTask, getAllTasks } from '../../Redux/actions/taskActions'
-import SideNavbar from '../../components/SideNavbar'
-import TopNavbar from '../../components/TopNavbar'
-import { DataTable } from 'simple-datatables'
-import { Link } from 'react-router-dom'
-import Swal from 'sweetalert2'
+import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { deleteTask, getAllTasks, updateTask } from '../../Redux/actions/taskActions';
+import SideNavbar from '../../components/SideNavbar';
+import TopNavbar from '../../components/TopNavbar';
+import DataTable from 'datatables.net-dt';
+import { Link } from 'react-router-dom';
+import Swal from 'sweetalert2';
+import { Modal, Button } from 'react-bootstrap'; // Import Bootstrap components
 
 const AllTasks = () => {
     const [dataLoaded, setDataLoaded] = useState(false);
+    const [showModal, setShowModal] = useState(false);
+    const [updateload, setUpdateLoad] = useState(false)
+    const [currentTask, setCurrentTask] = useState(null);
+    const [updatedTask, setUpdatedTask] = useState({});
     const dispatch = useDispatch();
     const alltasks = useSelector(state => state.taskReducer.task);
+    const updatedtask = useSelector(state => state.taskReducer.updateTask);
 
     useEffect(() => {
         const getTasks = async () => {
@@ -50,22 +56,77 @@ const AllTasks = () => {
             allowEscapeKey: false,
             timer: 1500,
             timerProgressBar: true
-        }).then(() => {
-            window.location.reload();
         });
+    }
+
+    const handleEdit = (task) => {
+        setCurrentTask(task);
+        setUpdatedTask(task);
+        setShowModal(true);
+    }
+
+
+    const handleConfirmUpdate = async () => {
+        await dispatch(updateTask(currentTask._id, updatedTask))
+        setUpdateLoad(true)
+        setShowModal(false);
+        dispatch(getAllTasks()); 
+    }
+
+    useEffect(()=>{
+        if(updateload==true){
+            if(updatedtask.error){
+                Swal.fire({
+                    title: 'عملية غير ناجحة',
+                    text: 'هذا الكود مستخدم من قبل',
+                    icon: 'error',
+                    showConfirmButton: false,
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    timer: 1500,
+                    timerProgressBar: true
+                }).then(() => {
+                    window.location.reload();
+                });
+            }else if(updatedtask.data){
+                Swal.fire({
+                    title: 'عملية ناجحة',
+                    text: 'تم تحديث المهمة بنجاح',
+                    icon: 'success',
+                    showConfirmButton: false,
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    timer: 1500,
+                    timerProgressBar: true
+                }).then(() => {
+                    window.location.reload();
+                });
+            }
+        }
+    },[updateload])
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setUpdatedTask(prevState => ({
+            ...prevState,
+            [name]: value
+        }));
     }
 
     useEffect(() => {
         const handleButtonClick = (event) => {
             if (event.target.classList.contains('btn-remove')) {
                 handleDelete(event.target.getAttribute('data-id'));
+            } else if (event.target.classList.contains('btn-edit')) {
+                const task = alltasks.data.find(t => t._id === event.target.getAttribute('data-id'));
+                handleEdit(task);
             }
         };
         document.addEventListener('click', handleButtonClick);
         return () => {
             document.removeEventListener('click', handleButtonClick);
         };
-    }, []);
+    }, [alltasks]);
+
 
     return (
         <>
@@ -74,7 +135,7 @@ const AllTasks = () => {
                 <TopNavbar />
                 <div className='mt-4'></div>
                 <div className="container">
-                    <div className='card rtl'>
+                    <div className='card '>
                         <div className="d-sm-flex justify-content-between mt-4"></div>
                         <div className="card-header rtl">
                             <div className="d-flex justify-content-between">
@@ -90,7 +151,7 @@ const AllTasks = () => {
                             </div>
                         </div>
                         <div className='table-responsive p-2 text-center'>
-                            <table className="table table-striped align-items-center" id='myTable'>
+                            <table className="table table-striped align-items-center rtl" id='myTable'>
                                 <thead>
                                     <tr>
                                         <th className='bg-success text-white text-center'>تاريخ التسجيل</th>
@@ -105,7 +166,7 @@ const AllTasks = () => {
                                 </thead>
                                 <tbody>
                                     {Array.isArray(alltasks.data) && alltasks.data.length > 0 ? (
-                                        alltasks.data.slice(0,25).map((item) => (
+                                        alltasks.data.slice(0, 25).map((item) => (
                                             <tr key={item._id}>
                                                 <td>{item.registration_date}</td>
                                                 <td>{item.code}</td>
@@ -113,7 +174,7 @@ const AllTasks = () => {
                                                 <td>{item.subject}</td>
                                                 <td>{item.info}</td>
                                                 <td>{item.notes}</td>
-                                                <td>قيد الإنتظار</td>
+                                                <td>{item.status}</td>
                                                 <td>
                                                     <button type="button" className="btn btn-primary btn-edit" data-id={item._id}>تعديل</button>
                                                     <button type="button" className="btn btn-danger btn-remove mx-2" data-id={item._id}>حذف</button>
@@ -127,6 +188,70 @@ const AllTasks = () => {
                     </div>
                 </div>
             </div>
+            <Modal show={showModal} onHide={() => setShowModal(false)}>
+                <Modal.Header closeButton>
+                    <Modal.Title>تعديل المهمة</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <form>
+                        <div className="form-group">
+                            <label>الكود</label>
+                            <input
+                                type="text"
+                                className="form-control"
+                                name="code"
+                                value={updatedTask.code || ''}
+                                onChange={handleChange}
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>القسم</label>
+                            <input
+                                type="text"
+                                className="form-control"
+                                name="department"
+                                value={updatedTask.department || ''}
+                                onChange={handleChange}
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>العنوان</label>
+                            <input
+                                type="text"
+                                className="form-control"
+                                name="subject"
+                                value={updatedTask.subject || ''}
+                                onChange={handleChange}
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>التفاصيل</label>
+                            <input
+                                type="text"
+                                className="form-control"
+                                name="info"
+                                value={updatedTask.info || ''}
+                                onChange={handleChange}
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>الملاحظات</label>
+                            <input
+                                type="text"
+                                className="form-control"
+                                name="notes"
+                                value={updatedTask.notes || ''}
+                                onChange={handleChange}
+                            />
+                        </div>
+                    </form>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setShowModal(false)}>إغلاق</Button>
+                    <Button variant="primary" onClick={handleConfirmUpdate}>حفظ التغييرات</Button>
+                </Modal.Footer>
+            </Modal>
+
         </>
     );
 }

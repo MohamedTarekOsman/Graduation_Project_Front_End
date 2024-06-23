@@ -39,9 +39,9 @@ export const createTask=(formData)=>async (dispatch)=>{
 
 
 //get one task with id
-export const getOneTask=(id)=>async (dispatch)=>{
+export const getOneTask=(code)=>async (dispatch)=>{
     try{
-        const response=await useGetDataToken(`/tasks/${id}`);
+        const response=await useGetDataToken(`/tasks/${code}`);
         dispatch({
             type:GET_ONE_TASK,
             payload:response,

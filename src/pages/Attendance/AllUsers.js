@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import SideNavbar from "../../components/SideNavbar";
 import TopNavbar from "../../components/TopNavbar";
 import { useDispatch, useSelector } from "react-redux";
-import { DataTable } from "simple-datatables";
+import  DataTable  from "datatables.net-dt";
 import {
   deleteUser,
   getAllUsers,
@@ -13,7 +13,7 @@ import { getAllTasks, getOneTask, updateTask } from "../../Redux/actions/taskAct
 import Swal from "sweetalert2";
 import { createNotification } from "../../Redux/actions/notificationsAction";
 
-const Attendance = () => {
+const AllUsers = () => {
   const [dataLoaded, setDataLoaded] = useState(false);
   const [onedataLoaded, setOneDataLoaded] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState(null);
@@ -268,22 +268,21 @@ const Attendance = () => {
               <h6>Authors table</h6>
             </div>
             <table className="table align-items-center" id="myTable">
+              
               <thead className="text-light ">
+                <tr>
                 <th className="bg-success text-white ">العمليات</th>
                 <th className="bg-success text-white">تاريخ الاضافة</th>
                 <th className="bg-success text-white">اسم المستخدم</th>
                 <th className="bg-success text-white">الدور</th>
                 <th className="bg-success text-white ">الاسم</th>
+                </tr>
               </thead>
+
               <tbody id="tableData">
                 {Array.isArray(allusers.data) && allusers.data.length > 0
-                  ? allusers.data.map((item, index) => (
+                  ? (allusers.data.map((item, index) => (
                       <tr key={index}>
-                        {item.role === "admin" ? (
-                          <td>
-                            
-                          </td>
-                        ) : (
                           <td>
                             <button
                               type="button"
@@ -319,7 +318,6 @@ const Attendance = () => {
                               تعديل كلمة السر
                             </button>
                           </td>
-                        )}
                         <td className="">
                           {new Date(item.updatedAt).getDate()}/
                           {new Date(item.updatedAt).getMonth() + 1}/
@@ -331,8 +329,8 @@ const Attendance = () => {
                           {item.first_name} {item.last_name}
                         </td>
                       </tr>
-                    ))
-                  : ""}
+                    ))):""
+                  }
               </tbody>
             </table>
           </div>
@@ -489,4 +487,4 @@ const Attendance = () => {
   );
 };
 
-export default Attendance;
+export default AllUsers;
