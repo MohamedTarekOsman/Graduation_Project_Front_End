@@ -1,0 +1,24 @@
+.sidenav .nav-link {
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.sidenav .nav-link:hover, .sidenav .nav-link.active {
+    background-color: #f0f0f0;
+    color: #000;
+}
+
+.sidenav .nav-link:hover .icon, .sidenav .nav-link.active .icon {
+    background-color: #e0e0e0;
+}
+
+.sidenav .nav-link:hover .icon i, .sidenav .nav-link.active .icon i {
+    color: #007bff;
+}
+
+.sidenav .nav-link-text {
+    transition: color 0.3s ease;
+}
+
+.sidenav .nav-link:hover .nav-link-text, .sidenav .nav-link.active .nav-link-text {
+    color: #007bff;
+}

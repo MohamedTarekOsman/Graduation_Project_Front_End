@@ -11,6 +11,7 @@ import SideNavbar from '../../components/SideNavbar'
 import TopNavbar from "../../components/TopNavbar";
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { createNotification } from '../../Redux/actions/notificationsAction'
+import { createEmployeeLastJob } from '../../Redux/actions/employeeLastJobAcion'
 
 const CreateReport = () => {
   const dispatch = useDispatch();
@@ -21,7 +22,7 @@ const CreateReport = () => {
   const [oneLoad, setOneLoad] = useState(false);
   const [ws, setWs] = useState(null);
   const current_user = JSON.parse(localStorage.getItem('user'));
-  const task = useSelector(state => state.taskReducer.createTask)
+  const employeeLastJob =useSelector(state => state.employeeLastJobReducer.emplyeeLastJob)
   const onetask = useSelector(state => state.taskReducer.oneTask)
   const [initialValues, setInitialValues] = useState({
     code: "",
@@ -29,20 +30,32 @@ const CreateReport = () => {
     subject: "",
     info: "",
     notes: "",
+    report:"",
   });
 
   const handleSubmit = async (values) => {
+    await dispatch(createEmployeeLastJob({
+      code: values.code,
+      department: values.department,
+      subject: values.subject,
+      info: values.info,
+      notes: values.notes,
+      report: values.report,
+      status:"تم الإرسال",
+      sent:true,
+      userId:current_user?._id
+    }))
     setLoad(true);
   };
 
   useEffect(() => {
     if (load) {
-      if (task.status === 200) {
+      if (employeeLastJob.status === 200) {
         dispatch(createNotification({
           user_id: current_user._id,
           sender_name: current_user.username,
-          message: task.data.data.info,
-          task_code: task.data.data.code,
+          message: employeeLastJob?.data?.data?.info,
+          task_code: employeeLastJob?.data?.data?.code,
           message_type: "alert-info",
         }));
         Swal.fire({
@@ -50,7 +63,7 @@ const CreateReport = () => {
           text: 'جارى الآن معالجة البيانات.',
           icon: 'success',
           showConfirmButton: false,
-          timer: 2500,
+          timer: 1500,
           timerProgressBar: true,
           allowOutsideClick: false,
           allowEscapeKey: false,
@@ -60,19 +73,20 @@ const CreateReport = () => {
           navigate('/allTasks');
         }, 1500);
 
-        if (ws && task.data) {
-          ws.send(JSON.stringify(task.data));
+        if (ws && employeeLastJob.data) {
+          ws.send(JSON.stringify(employeeLastJob.data));
         }
 
       } else {
         Swal.fire({
           title: 'خطأ!',
-          text: 'الكود اللذي ادخلته موجود بالفعل',
+          text: 'تم ارسال التقرير بالفعل',
           icon: 'error',
+          timer: 1500,
           showConfirmButton: false,
         });
         setTimeout(() => {
-          window.location.reload(false);
+          navigate('/allTasks');
         }, 1500);
       }
       dispatch({ type: 'RESET_CREATE_TASK' });
@@ -86,13 +100,14 @@ const CreateReport = () => {
     subject: Yup.string().required('is Required'),
     info: Yup.string().required('is Required'),
     notes: Yup.string().required('is Required'),
+    report: Yup.string().required('is Required'),
   });
 
   const Formik = useFormik({
     initialValues: initialValues,
     onSubmit: handleSubmit,
     validationSchema,
-    enableReinitialize: true, // This allows the form to reinitialize with new values
+    enableReinitialize: true, 
   });
 
   useEffect(() => {
@@ -123,6 +138,7 @@ const CreateReport = () => {
         subject: onetask.data[0].subject || '',
         info: onetask.data[0].info || '',
         notes: onetask.data[0].notes || '',
+        report:""
       });
     }
   }, [oneLoad, onetask]);
@@ -144,6 +160,7 @@ const CreateReport = () => {
                   name='code' 
                   type='text' 
                   id='code' 
+                  disabled
                   value={Formik.values.code} // Bind value from Formik
                 />
                 {Formik.errors.code && Formik.touched.code ? (
@@ -158,6 +175,7 @@ const CreateReport = () => {
                   className='form-control' 
                   name='department' 
                   type='text' 
+                  disabled
                   id='department' 
                   value={Formik.values.department} // Bind value from Formik
                 />
@@ -174,6 +192,7 @@ const CreateReport = () => {
                   name='subject' 
                   type='text' 
                   id='subject' 
+                  disabled
                   value={Formik.values.subject} // Bind value from Formik
                 />
                 {Formik.errors.subject && Formik.touched.subject ? (
@@ -189,6 +208,7 @@ const CreateReport = () => {
                   name='info' 
                   type='text' 
                   id='info' 
+                  disabled
                   value={Formik.values.info} // Bind value from Formik
                 />
                 {Formik.errors.info && Formik.touched.info ? (
@@ -204,13 +224,29 @@ const CreateReport = () => {
                   name='notes' 
                   type='text' 
                   id='notes' 
+                  disabled
                   value={Formik.values.notes} // Bind value from Formik
                 />
                 {Formik.errors.notes && Formik.touched.notes ? (
                   <div className='alert alert-danger'>{Formik.errors.notes}</div>
                 ) : null}
               </div>
-              <button type='submit' className='btn btn-success mt-3' style={{ float: 'right' }}>حفظ المعلومات</button>
+              <div className='mb-3'>
+                <label htmlFor='report' style={{ float: 'right' }}>التقرير</label>
+                <textarea 
+                  onBlur={Formik.handleBlur} 
+                  onChange={Formik.handleChange} 
+                  className='form-control' 
+                  name='report' 
+                  type='text' 
+                  id='notes' 
+                  value={Formik.values.report} // Bind value from Formik
+                />
+                {Formik.errors.notes && Formik.touched.notes ? (
+                  <div className='alert alert-danger'>{Formik.errors.notes}</div>
+                ) : null}
+              </div>
+              <button type='submit' className='btn btn-success mt-3' style={{ float: 'right' }}>ارسال التقرير </button>
             </form>
           </div>
         </div>
