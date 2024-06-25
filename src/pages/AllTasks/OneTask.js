@@ -15,6 +15,13 @@ const OneTask = () => {
     const [dataLoaded, setDataLoaded] = useState(false);
     const dispatch = useDispatch();
     const task = useSelector(state => state.taskReducer.oneTask);
+    const [currentUser, setCurrentUser] = useState(null);
+
+    // Fetch current user from local storage once on component mount
+    useEffect(() => {
+      const storedUser = JSON.parse(localStorage.getItem('user'));
+      setCurrentUser(storedUser);
+    }, []);
 
     useEffect(() => {
         const getTasks = async () => {
@@ -118,8 +125,12 @@ const OneTask = () => {
                                                 <td>{task.data[0].notes}</td>
                                                 <td>قيد الإنتظار</td>
                                                 <td>
-                                                    <button type="button" className="btn btn-primary btn-edit" data-id={task.data[0]._id}>تعديل</button>
-                                                    <button type="button" className="btn btn-danger btn-remove mx-2" data-id={task.data[0]._id}>حذف</button>
+                                                    {currentUser?.role==="admin"?"":
+                                                        <Link to={`/newReport?taskcode=${task.data[0].code}`}>
+                                                            <button type="button" className="btn btn-primary btn-edit">كتابة تقرير</button>
+                                                        </Link>
+                                                    }
+                                                   
                                                 </td>
                                             </tr>
                                         

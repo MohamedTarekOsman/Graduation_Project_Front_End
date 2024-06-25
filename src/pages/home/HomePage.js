@@ -218,7 +218,7 @@ const deletePrivateNote=(id) => {
                         <h5 className="card-title text-muted mb-0" style={{fontSize:'18.2px'}}>في انظار القبول او الرفض</h5>
                         <span className="h3 font-weight-bold mb-0">{
                             Array.isArray(alltasks.data) && alltasks.data.length > 0 ?(
-                                alltasks.data.filter((item)=>item.status==="pending").length
+                                alltasks.data.filter((item)=>item.status==="في انتظار القبول او الرفض").length
                             ):""
                             }</span>
                     </div>
@@ -237,10 +237,10 @@ const deletePrivateNote=(id) => {
             <div className="card-body">
                 <div className="row">
                     <div className="col">
-                        <h5 className="card-title text-uppercase text-muted mb-0">المكتمله</h5>
+                        <h5 className="card-title text-uppercase text-muted mb-0">تم الإرسال</h5>
                         <span className="h3 font-weight-bold mb-0">{
                             Array.isArray(alltasks.data) && alltasks.data.length > 0 ?(
-                                alltasks.data.filter((item)=>item.completed==="true").length
+                                alltasks.data.filter((item)=>item.sent===true).length
                             ):""
                             }</span>
                     </div>

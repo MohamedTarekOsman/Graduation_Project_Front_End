@@ -55,6 +55,7 @@ const TopNavbar = () => {
     }
   }
 
+  
   return (
     <nav className="navbar navbar-main navbar-expand-lg px-0 mx-4 shadow-none border-radius-xl" id="navbarBlur" data-scroll="false">
       <div className="container-fluid py-1 px-3">
@@ -65,6 +66,7 @@ const TopNavbar = () => {
           </ol>
           <h6 className="font-weight-bolder text-white mb-0">Dashboard</h6>
         </nav>
+        
         <div className="collapse navbar-collapse mt-sm-0 mt-2 me-md-0 me-sm-4" id="navbar">
           <div className="ms-md-auto pe-md-3 d-flex align-items-center">
             <div className="input-group">
@@ -75,7 +77,7 @@ const TopNavbar = () => {
           <ul className="navbar-nav justify-content-end">
             <li className="nav-item d-flex align-items-center">
               <a href="#" className="nav-link text-white font-weight-bold px-0">
-                <i className="fa fa-user me-sm-1"></i>
+                <i className="fa fa-user me-sm-1 "></i>
               </a>
             </li>
             <li className="nav-item px-3 d-flex align-items-center">

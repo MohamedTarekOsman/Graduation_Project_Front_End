@@ -56,7 +56,9 @@ const AllTasks = () => {
             allowEscapeKey: false,
             timer: 1500,
             timerProgressBar: true
-        });
+        }).then(async()=>{
+            await dispatch(getAllTasks());
+        })
     }
 
     const handleEdit = (task) => {

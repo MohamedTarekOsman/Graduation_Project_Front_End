@@ -37,8 +37,8 @@ const AttendanceCalender = () => {
     // Check if attendance already exists for today for the current user
     const userAttendanceExists = AllAttendances.data.some(
       (attendance) =>
-        attendance.userId._id === currentUser._id &&
-        attendance.updatedAt.startsWith(today)
+        attendance?.userId?._id === currentUser._id &&
+        attendance?.updatedAt.startsWith(today)
     );
     console.log(currentUser._id)
     console.log(today)

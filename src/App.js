@@ -12,6 +12,8 @@ import NotesPage from "./pages/home/NotesPage";
 import AttendanceCalender from "./pages/Attendance/AttendanceCalender";
 import ChatPage from "./pages/Chat/ChatPage";
 import OneTask from "./pages/AllTasks/OneTask";
+import AllReports from "./pages/Reports/AllReports";
+import CreateReport from "./pages/Reports/CreateReport";
 
 function App() {
   return (
@@ -31,6 +33,8 @@ function App() {
       <Route path="/alluser" element={ <AllUsers/>} />
       <Route path="/attendanceCalender" element={ <AttendanceCalender/>} />
       <Route path="/chat" element={ <ChatPage/>} />
+      <Route path="/report" element={ <AllReports/>} />
+      <Route path="/newReport" element={ <CreateReport/>} />
     </Routes>
     </>
   );

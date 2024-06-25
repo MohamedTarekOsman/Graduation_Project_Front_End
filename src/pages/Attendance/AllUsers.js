@@ -18,6 +18,7 @@ const AllUsers = () => {
   const [onedataLoaded, setOneDataLoaded] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [currentUser,SetCurrentUser]=useState(null);
+  const [oneTask,SetOneTask]=useState("");
   const [formData, setFormData] = useState({
     first_name: "",
     last_name: "",
@@ -30,7 +31,6 @@ const AllUsers = () => {
   const dispatch = useDispatch();
   const allusers = useSelector((state) => state.userReducer.user);
   const alltasks = useSelector((state) => state.taskReducer.task);
-  const onetask = useSelector((state) => state.taskReducer.oneTask);
   const [ws, setWs] = useState(null);
   useEffect(() => {
     SetCurrentUser(JSON.parse(localStorage.getItem('user')))
@@ -125,9 +125,11 @@ const AllUsers = () => {
           updateTask(selectedTask._id, {
             userId: selecteduser._id,
             sent: true,
+            status:"تم الإرسال"
           })
         ).then(() => {
           dispatch(getAllTasks());
+          setOneDataLoaded(true)
         });
   
         await dispatch(
@@ -135,13 +137,14 @@ const AllUsers = () => {
             user_id: selecteduser._id,
             sender_name: currentUser.username,
             message: selectedTask.info,
+            task_code:selectedTask.code,
             message_type: "alert-info",
           })
         );
         
         await dispatch(getOneTask(selectedTask._id));
-        setOneDataLoaded(true)
-        // Check for onetask.data existence and WebSocket connection
+       
+        SetOneTask(selectedTask)
       },
       allowOutsideClick: () => !Swal.isLoading(),
     }).then((result) => {
@@ -153,6 +156,7 @@ const AllUsers = () => {
             icon: "success",
           }).then(() => {
             dispatch(getAllTasks());
+            
           });
         } else {
           Swal.fire({
@@ -167,8 +171,9 @@ const AllUsers = () => {
   useEffect(()=>{
     if (onedataLoaded===true && ws && ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify({
-        data: onetask.data
+        data: oneTask
       }));
+      console.log(oneTask)
     } else {
       console.error('WebSocket connection is not open');
     }
