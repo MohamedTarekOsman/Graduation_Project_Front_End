@@ -38,7 +38,7 @@ const NewTaskPage = () => {
     if (load) {
       if (task.status === 200) {
         dispatch(createNotification({
-          user_id: current_user._id,
+          user_id: null,
           sender_name: current_user.username,
           message: task.data.data.info,
           task_code:task.data.data.code,

@@ -1,24 +1,28 @@
+/* eslint-disable eqeqeq */
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { getAllWallet, createWallet, deleteWallet, updateWallet } from '../../Redux/actions/walletAction'; // Update with your specific actions
-import { getAllTasks } from '../../Redux/actions/taskActions';
+import { getAllTasks, updateTask } from '../../Redux/actions/taskActions';
 import Swal from 'sweetalert2';
 import DataTable from 'datatables.net-dt';
 import SideNavbar from '../../components/SideNavbar';
 import TopNavbar from '../../components/TopNavbar';
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
-import { getAllEmployeeLastJobs } from '../../Redux/actions/employeeLastJobAcion';
+import { deleteEmployeeLastJob, getAllEmployeeLastJobs, updateEmployeeLastJob } from '../../Redux/actions/employeeLastJobAcion';
+import { useSearchParams } from 'react-router-dom';
 
 const AllReports = () => {
+    const user=JSON.parse(localStorage.getItem('user'))
+    const [searchParams] = useSearchParams();
+    const taskcode = searchParams.get('taskcode');
     const dispatch = useDispatch();
     const alltasks = useSelector(state => state.taskReducer.task);
     const allemplyeelastjob = useSelector(state => state.employeeLastJobReducer.emplyeeLastJob);
     const [dataLoaded, setDataLoaded] = useState(false);
-    const [showEditModal, setShowEditModal] = useState(false);
     const [showReportModal, setShowReportModal] = useState(false);
-    const [editItem, setEditItem] = useState(null);
-    const [amountReceived, setAmountReceived] = useState('');
+    const [taskselected, setTaskselected] = useState(null);
+    const [taskselectedRefuse, setTaskselectedRefuse] = useState(null);
     const [selectedReport, setSelectedReport] = useState('');
 
     useEffect(() => {
@@ -34,6 +38,7 @@ const AllReports = () => {
 
     useEffect(() => {
         if (dataLoaded) {
+            
             const dataTable = new DataTable('#wallet-table', {
                 searchable: true,
             });
@@ -44,50 +49,49 @@ const AllReports = () => {
         }
     }, [dataLoaded]);
 
-    const handleEdit = (walletItem) => {
-        setEditItem(walletItem);
-        setAmountReceived(walletItem.amount_received_from_customer || '');
-        setShowEditModal(true);
-    };
-
-    const saveEditedItem = () => {
-        if (!editItem) return; // Return if editItem is null or undefined
-
-        const updatedItem = {
-            ...editItem,
-            amount_received_from_customer: amountReceived,
-        };
-
-        dispatch(updateWallet(editItem._id, updatedItem)); // Pass editItem._id and updatedItem to updateWallet
-        setShowEditModal(false);
+    const handleAccept = async(task) => {
+        setTaskselected(alltasks.data.filter(onetask => onetask.code==task.code))
+        await dispatch(updateEmployeeLastJob(task._id,{
+            status:'تم القبول'
+        }));
         Swal.fire({
-            title: 'تم التعديل!',
-            text: 'تم تحديث السجل بنجاح.',
+            title: 'تم القبول!',
+            text: 'تم قبول التقرير بنجاح.',
             icon: 'success',
-        });
-        dispatch(getAllWallet());
+        }).then(()=>{
+            dispatch(getAllEmployeeLastJobs())
+        })
     };
+    useEffect(()=>{
+        if(taskselected!=null){
+            dispatch(updateTask(taskselected[0]._id,{
+                status:"تم القبول"
+            }))
+            console.log(taskselected)
+        }
+    },[taskselected])
 
-    const handleDelete = async (walletId) => {
+    const handleRefuse= async (task) => {
+        setTaskselectedRefuse(alltasks.data.filter(onetask => onetask.code==task.code))
+        await dispatch(updateEmployeeLastJob(task._id,{
+            status:'مرفوض'
+        }));
         Swal.fire({
-            title: 'هل أنت متأكد؟',
-            text: 'سيتم حذف هذا السجل نهائيًا!',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'نعم، احذف',
-            cancelButtonText: 'إلغاء',
-        }).then(async (result) => {
-            if (result.isConfirmed) {
-                await dispatch(deleteWallet(walletId));
-                Swal.fire({
-                    title: 'تم الحذف!',
-                    text: 'تم حذف السجل بنجاح.',
-                    icon: 'success',
-                });
-                dispatch(getAllWallet()); 
-            }
-        });
+            title: 'تم الرفض!',
+            text: 'تم رفض التقرير بنجاح.',
+            icon: 'Warning',
+        }).then(()=>{
+            dispatch(getAllEmployeeLastJobs())
+        })
     };
+    useEffect(()=>{
+        if(taskselectedRefuse!=null){
+            dispatch(updateTask(taskselectedRefuse[0]._id,{
+                status:"مرفوض"
+            }))
+            console.log(taskselected)
+        }
+    },[taskselectedRefuse])
 
     const handleShowReport = (report) => {
         setSelectedReport(report);
@@ -115,10 +119,12 @@ const AllReports = () => {
                             </div>
                         </div>
                         <div className='card-body'>
-                            <table id='wallet-table' className="table table-dark table-striped table-bordered text-center">
+                        <div class="table-responsive text-center m-0 ">
+                        
+                            <table id='wallet-table' className="table table-dark table-striped table-bordered text-center align-items-center">
                                 <thead className=''>
                                     <tr>
-                                        <th className="bg-dark">الإجراء</th>
+                                        <th className="bg-dark">{user?.role=="employee"?"الحالة":"الإجراء"}</th>
                                         <th className="bg-dark">التقرير</th>
                                         <th className="bg-dark">التفاصيل</th>
                                         <th className="bg-dark">العنوان</th>
@@ -127,14 +133,61 @@ const AllReports = () => {
                                     </tr>
                                 </thead>
                                 <tbody id="tableData">
-                                    {Array.isArray(allemplyeelastjob.data) && allemplyeelastjob.data.length > 0 && allemplyeelastjob.data.map((item, index) => (
+                                    {user?.role=="employee"?taskcode==null?Array.isArray(allemplyeelastjob.data) && allemplyeelastjob.data.length > 0 && allemplyeelastjob.data.filter(item=>item.userId==user._id).map((item, index) => (
                                         <tr key={index}>
                                             <td>
-                                                <button type="button" className="btn btn-success" onClick={() => handleEdit(item)}>قبول</button>
-                                                <button type="button" className="btn btn-danger mx-2" onClick={() => handleDelete(item._id)}>رفض</button>
-                                            </td>
+                                                {item.status}
+                                                </td>
                                             <td>
-                                                <span className="text-success" style={{ cursor: 'pointer' }} onClick={() => handleShowReport(item.report)}>report</span>
+                                                {item.report}
+                                            </td>
+                                            <td>{item.info}</td>
+                                            <td>{item.subject}</td>
+                                            <td>{item.department}</td>
+                                            <td>{item.code}</td>
+                                        </tr>
+                                    )):Array.isArray(allemplyeelastjob.data) && allemplyeelastjob.data.length > 0 && allemplyeelastjob.data.filter(task=>task.code==taskcode).map((item, index) => (
+                                        <tr key={index}>
+                                            <td>
+                                                {item.status}
+                                                </td>
+                                            <td>
+                                                {item.report}
+                                            </td>
+                                            <td>{item.info}</td>
+                                            <td>{item.subject}</td>
+                                            <td>{item.department}</td>
+                                            <td>{item.code}</td>
+                                        </tr>
+                                    ))
+
+                                    :
+                                    
+                                    taskcode==null?Array.isArray(allemplyeelastjob.data) && allemplyeelastjob.data.length > 0 && allemplyeelastjob.data.map((item, index) => (
+                                        <tr key={index}>
+                                            <td>
+                                                {item.status=="تم الإرسال"?<>
+                                                    <button type="button" className="btn btn-success" onClick={() => handleAccept(item)}>قبول</button>
+                                                <button type="button" className="btn btn-danger mx-2" onClick={() => handleRefuse(item)}>رفض</button>
+                                                </>:item.status}
+                                                </td>
+                                            <td>
+                                                {item.report}
+                                            </td>
+                                            <td>{item.info}</td>
+                                            <td>{item.subject}</td>
+                                            <td>{item.department}</td>
+                                            <td>{item.code}</td>
+                                        </tr>
+                                    )):Array.isArray(allemplyeelastjob.data) && allemplyeelastjob.data.length > 0 && allemplyeelastjob.data.filter(task=>task.code==taskcode).map((item, index) => (
+                                        <tr key={index}>
+                                            <td>
+                                            {item.status=="تم الإرسال"?<>
+                                                    <button type="button" className="btn btn-success" onClick={() => handleAccept(item)}>قبول</button>
+                                                <button type="button" className="btn btn-danger mx-2" onClick={() => handleRefuse(item)}>رفض</button>
+                                                </>:item.status}</td>
+                                            <td>
+                                                {item.report}
                                             </td>
                                             <td>{item.info}</td>
                                             <td>{item.subject}</td>
@@ -144,39 +197,13 @@ const AllReports = () => {
                                     ))}
                                 </tbody>
                             </table>
+
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* Edit Modal */}
-            <Modal show={showEditModal} onHide={() => setShowEditModal(false)}>
-                <Modal.Header closeButton>
-                    <Modal.Title>تعديل السجل</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    <div className="form-group">
-                        <label htmlFor="amount_received_from_customer">المبلغ المستلم:</label>
-                        <input
-                            type="number"
-                            className="form-control"
-                            id="amount_received_from_customer"
-                            value={amountReceived}
-                            onChange={(e) => setAmountReceived(e.target.value)}
-                            min="0"
-                            placeholder="Enter amount of money with Egyptian pound"
-                        />
-                    </div>
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button variant="secondary" onClick={() => setShowEditModal(false)}>
-                        إلغاء
-                    </Button>
-                    <Button variant="primary" onClick={saveEditedItem}>
-                        حفظ التغييرات
-                    </Button>
-                </Modal.Footer>
-            </Modal>
 
             {/* Report Modal */}
             <Modal show={showReportModal} onHide={() => setShowReportModal(false)}>

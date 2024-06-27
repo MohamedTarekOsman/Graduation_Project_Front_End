@@ -11,6 +11,7 @@ import Button from 'react-bootstrap/Button';
 
 const Wallet = () => {
     const dispatch = useDispatch();
+    const user=JSON.parse(localStorage.getItem('user'))
     const alltasks = useSelector(state => state.taskReducer.task);
     const wallet = useSelector(state => state.walletReducer.wallet);
     const [dataLoaded, setDataLoaded] = useState(false);
@@ -94,7 +95,7 @@ const Wallet = () => {
                 container_height.style.height = '200px';
 
                 if (dataLoaded) {
-                    alltasks.data.filter(item => item.sent === false).forEach(function (task) {
+                    alltasks.data.filter(item => item.status === "تم القبول").forEach(function (task) {
                         var option = document.createElement('option');
                         option.value = task.code;
                         option.textContent = task.code.split('(')[1]?.split(')')[0] || task.code;
@@ -241,6 +242,7 @@ const Wallet = () => {
                                     <h5 className="mb-0">جميع المصروفات</h5>
                                     <p className="text-sm mb-0">يمكن عرض او اضافه بيانات للمواضيع التي تم ارسالها.</p>
                                 </div>
+                                
                                 <div>
                                     <div className="btn btn-icon bg-gradient-info CustomColorFunction" onClick={SendTask}>
                                         <p className="text-xl font-weight-bold mb-0">تسجيل مصروفات جديده</p>

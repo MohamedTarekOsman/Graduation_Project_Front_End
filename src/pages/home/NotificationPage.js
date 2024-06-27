@@ -45,6 +45,11 @@ useEffect(()=>{
     });
   };
 
+  const delNotificationdirect = async(id) => {
+    await dispatch(deleteNotification(id));
+    await dispatch(getAllNotification());
+  };
+
   return (
     <>
       <SideNavbar />
@@ -58,13 +63,10 @@ useEffect(()=>{
               </div>
               <div className="w-100 card p-4 rtl">
                 {notifications && Array.isArray(notifications.data) && notifications.data.length > 0 && currentUser && (
-                  currentUser.role === 'admin' ? (
-                    notifications.data.map((item, index) => (
+                  currentUser.role === 'manager' ? (
+                    notifications.data.filter(item=>item.user_id==null).map((item, index) => (
                       <div key={index} className={"alert text-white " + item.message_type} role="alert">
-                        {item.message}
-                        <Link to={`/oneTask?taskcode=${item.task_code}`}>
-                        <button type="button" className="btn btn-outline-white mx-4 mt-3">عرض التفاصيل</button>
-                        </Link>
+                        {item.message} |   code : {item.task_code}
                         <div style={{ cursor: "pointer", padding: "10px", marginTop: "10px", float: "left" }} className="form-check" onClick={() => { delNotification(item._id) }}>
                           <IoTrashBin style={{ width: "30px", height: "30px" }} />
                         </div>
@@ -73,9 +75,9 @@ useEffect(()=>{
                   ) : (
                     notifications.data.filter(item => item.user_id == currentUser._id).map((item, index) => (
                       <div key={index} className={"alert text-white " + item.message_type} role="alert">
-                        {item.message}
+                        {item.message}  |   code : {item.task_code}
                         <Link to={`/oneTask?taskcode=${item.task_code}`}>
-                        <button type="button" className="btn btn-outline-white mx-4 mt-3">عرض التفاصيل</button>
+                        <button type="button" className="btn btn-outline-white mx-4 mt-3" onClick={()=>{delNotificationdirect(item._id)}}>عرض التفاصيل</button>
                         </Link>
                         <div style={{ cursor: "pointer", padding: "10px", marginTop: "10px", float: "left" }} className="form-check" onClick={() => { delNotification(item._id) }}>
                           <IoTrashBin style={{ width: "30px", height: "30px" }} />

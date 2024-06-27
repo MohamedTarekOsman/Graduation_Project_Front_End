@@ -90,47 +90,42 @@ const TopNavbar = () => {
                 <i className="fa fa-bell cursor-pointer"></i>
               </a>
               <ul className="dropdown-menu dropdown-menu-end px-2 py-3 me-sm-n4" aria-labelledby="dropdownMenuButton">
-                {currentUser && currentUser.role === 'admin'
-                  ? notifications.slice(0, 4).map((item, index) => (
+                {currentUser && currentUser.role === 'manager'
+                  ? notifications.filter(item=>item.user_id==null).filter(item=>item.code).slice(0, 4).map((item, index) => (
                       <li className="mb-2" key={index}>
                         <a className="dropdown-item border-radius-md" href="javascript:;">
                           <div className="d-flex py-1">
-                            <div className="my-auto">
-                              <img src="./assets/img/team-2.jpg" className="avatar avatar-sm me-3" />
-                            </div>
+                            
                             <div className="d-flex flex-column justify-content-center">
                               <h6 className="text-sm font-weight-normal mb-1">
                                 <span className="font-weight-bold">Task Code: {item.code}</span>
                               </h6>
                               <p className="text-xs text-secondary mb-0">
-                                <i className="fa fa-clock me-1"></i>
-                                just now
+                                --------------------------------
                               </p>
                             </div>
                           </div>
                         </a>
                       </li>
                     ))
-                  : currentUser && notifications.slice(0, 4).filter(item => item.userId == currentUser._id).map((item, index) => (
+                  :currentUser && currentUser.role === 'employee'
+                  ? currentUser && notifications.slice(0, 4).filter(item => item.data?.userId == currentUser._id).map((item, index) => (
                       <li className="mb-2" key={index}>
                         <a className="dropdown-item border-radius-md" href="javascript:;">
                           <div className="d-flex py-1">
-                            <div className="my-auto">
-                              <img src="./assets/img/team-2.jpg" className="avatar avatar-sm me-3" />
-                            </div>
+                            
                             <div className="d-flex flex-column justify-content-center">
                               <h6 className="text-sm font-weight-normal mb-1">
-                                <span className="font-weight-bold">Task Code: {item.code}</span>
+                                <span className="font-weight-bold">Task Code: {item.data.code}</span>
                               </h6>
                               <p className="text-xs text-secondary mb-0">
-                                <i className="fa fa-clock me-1"></i>
-                                just now
+                                --------------------------------
                               </p>
                             </div>
                           </div>
                         </a>
                       </li>
-                    ))}
+                    )):""}
                 <li>
                   <Link className="dropdown-item border-radius-md" to="/notifications">
                     <div className="d-flex py-1 justify-content-center align-items-center">
@@ -145,9 +140,9 @@ const TopNavbar = () => {
               </ul>
               <div style={{ backgroundColor: "red", width: "15px", height: "15px", fontSize: "10px", color: "white", textAlign: "center", borderRadius: "100%", marginTop: "-10px" }}>
                 {currentUser
-                  ? currentUser.role === 'admin'
-                    ? notifications.length
-                    : notifications.filter(item => item.userId === currentUser._id).length
+                  ? currentUser.role === 'manager'
+                    ? notifications.filter(item=>item.user_id==null).filter(item=>item.code).length
+                    : notifications.filter(item => item.data?.userId === currentUser._id).length
                   : 0}
               </div>
             </li>

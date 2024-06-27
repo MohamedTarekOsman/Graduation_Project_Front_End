@@ -1,27 +1,23 @@
+/* eslint-disable eqeqeq */
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { deleteTask, getOneTask } from '../../Redux/actions/taskActions'
+import { deleteTask, getAllTasks, getOneTask, updateTask } from '../../Redux/actions/taskActions'
 import SideNavbar from '../../components/SideNavbar'
 import TopNavbar from '../../components/TopNavbar'
 import  DataTable  from 'datatables.net-dt'
 import { Link, useSearchParams } from 'react-router-dom'
 import Swal from 'sweetalert2'
+import { deleteEmployeeLastJob } from '../../Redux/actions/employeeLastJobAcion'
 
 const OneTask = () => {
+    const user=JSON.parse(localStorage.getItem('user'))
     const [searchParams] = useSearchParams();
     const taskcode = searchParams.get('taskcode');
     // const {code}=useParams()
     const [dataLoaded, setDataLoaded] = useState(false);
     const dispatch = useDispatch();
     const task = useSelector(state => state.taskReducer.oneTask);
-    const [currentUser, setCurrentUser] = useState(null);
-
-    // Fetch current user from local storage once on component mount
-    useEffect(() => {
-      const storedUser = JSON.parse(localStorage.getItem('user'));
-      setCurrentUser(storedUser);
-    }, []);
 
     useEffect(() => {
         const getTasks = async () => {
@@ -77,7 +73,26 @@ const OneTask = () => {
             document.removeEventListener('click', handleButtonClick);
         };
     }, []);
-
+    const handleundo=async(task)=>{
+        await dispatch(deleteEmployeeLastJob(task.code))
+        await dispatch(updateTask(task._id, {
+            userId:null,
+            sent:false,
+            status:"لم ترسل"
+        }))
+        Swal.fire({
+            title: 'عملية ناجحة',
+            text: "تم التراجع عن ارسال الكود",
+            icon: 'success',
+            showConfirmButton: false,
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            timer: 1500,
+            timerProgressBar: true
+        }).then(() => {
+            dispatch(getAllTasks())
+        });
+    }
     return (
         <>
             <SideNavbar />
@@ -123,14 +138,22 @@ const OneTask = () => {
                                                 <td>{task.data[0].subject}</td>
                                                 <td>{task.data[0].info}</td>
                                                 <td>{task.data[0].notes}</td>
-                                                <td>قيد الإنتظار</td>
+                                                <td>{user?.role=="employee"&&task.data[0]?.status=="تم الإرسال"?"لم ترسل":task.data[0]?.status}</td>
                                                 <td>
-                                                    {currentUser?.role==="admin"?"":
-                                                        <Link to={`/newReport?taskcode=${task.data[0].code}`}>
-                                                            <button type="button" className="btn btn-primary btn-edit">كتابة تقرير</button>
+                                                {((user?.role=="admin"&&(task.data[0]?.status=='في انتظار القبول او الرفض'))||(user?.role=="manager"&&(task.data[0]?.status=='في انتظار القبول او الرفض')))?
+                                                <Link to={`/report?taskcode=${task.data[0]?.code}`}>
+                                                    <button type="button" className="btn btn-primary">مراجعة</button>
+                                                </Link>
+                                                :((user?.role=="admin"&&(task.data[0]?.status!="لم ترسل"))||(user?.role=="manager"&&(task.data[0]?.status!="لم ترسل")))? <button type="button" className="btn btn-danger" onClick={()=>{handleundo(task.data[0])}}>تراجع</button>:(user?.role === "admin" || user?.role === "manager") ? (
+                                                        <>
+                                                            <button type="button" className="btn btn-primary btn-edit" data-id={task.data[0]?._id}>تعديل</button>
+                                                            <button type="button" className="btn btn-danger btn-remove mx-2" data-id={task.data[0]?._id}>حذف</button>
+                                                        </>
+                                                    ) : user?.role === 'employee' && task.data[0]?.status === "تم الإرسال" ? (
+                                                        <Link to={`/newReport?taskcode=${task.data[0]?.code}`}>
+                                                            <button type='submit' className='btn btn-primary mt-3' style={{ float: 'right' }}>ارسال التقرير</button>
                                                         </Link>
-                                                    }
-                                                   
+                                                    ) : "قيد المراجعة"}
                                                 </td>
                                             </tr>
                                         

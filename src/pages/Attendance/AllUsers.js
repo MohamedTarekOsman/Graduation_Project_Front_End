@@ -1,3 +1,4 @@
+/* eslint-disable eqeqeq */
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from "react";
 import SideNavbar from "../../components/SideNavbar";
@@ -31,6 +32,7 @@ const AllUsers = () => {
   const dispatch = useDispatch();
   const allusers = useSelector((state) => state.userReducer.user);
   const alltasks = useSelector((state) => state.taskReducer.task);
+  const updatedtask=useSelector((state) => state.taskReducer.updateTask)
   const [ws, setWs] = useState(null);
   useEffect(() => {
     SetCurrentUser(JSON.parse(localStorage.getItem('user')))
@@ -129,9 +131,8 @@ const AllUsers = () => {
           })
         ).then(() => {
           dispatch(getAllTasks());
-          setOneDataLoaded(true)
         });
-  
+        setOneDataLoaded(true)
         await dispatch(
           createNotification({
             user_id: selecteduser._id,
@@ -143,7 +144,6 @@ const AllUsers = () => {
         );
         
         await dispatch(getOneTask(selectedTask._id));
-       
         SetOneTask(selectedTask)
       },
       allowOutsideClick: () => !Swal.isLoading(),
@@ -171,9 +171,9 @@ const AllUsers = () => {
   useEffect(()=>{
     if (onedataLoaded===true && ws && ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify({
-        data: oneTask
+        data: updatedtask
       }));
-      console.log(oneTask)
+      console.log(updatedtask)
     } else {
       console.error('WebSocket connection is not open');
     }
@@ -285,18 +285,18 @@ const AllUsers = () => {
               </thead>
 
               <tbody id="tableData">
-                {Array.isArray(allusers.data) && allusers.data.length > 0
-                  ? (allusers.data.map((item, index) => (
+                {currentUser?.role=="manager"?Array.isArray(allusers.data) && allusers.data.length > 0
+                  ? (allusers.data.filter(item=>item.role=="employee").map((item, index) => (
                       <tr key={index}>
                           <td>
-                            <button
+                            {currentUser?.role=="manager"? <button
                               type="button"
                               className="btn btn-warning mx-2"
                               onClick={() => SendTask(item)}
                             >
                               ارسال مهمة
-                            </button>
-
+                            </button>:
+                            <>
                             <button
                               type="button"
                               className="btn btn-danger"
@@ -304,6 +304,7 @@ const AllUsers = () => {
                             >
                               حذف
                             </button>
+
                             <button
                               type="button"
                               className="btn btn-success mx-2"
@@ -313,6 +314,7 @@ const AllUsers = () => {
                             >
                               تعديل
                             </button>
+
                             <button
                               type="button"
                               className="btn btn-primary "
@@ -322,6 +324,61 @@ const AllUsers = () => {
                             >
                               تعديل كلمة السر
                             </button>
+                            </>
+                            }
+                          </td>
+                        <td className="">
+                          {new Date(item.updatedAt).getDate()}/
+                          {new Date(item.updatedAt).getMonth() + 1}/
+                          {new Date(item.updatedAt).getFullYear()}
+                        </td>
+                        <td className="">{item.username}</td>
+                        <td className="">{item.role}</td>
+                        <td className="">
+                          {item.first_name} {item.last_name}
+                        </td>
+                      </tr>
+                    ))):"":Array.isArray(allusers.data) && allusers.data.length > 0
+                  ? (allusers.data.map((item, index) => (
+                      <tr key={index}>
+                          <td>
+                            {currentUser?.role=="manager"? <button
+                              type="button"
+                              className="btn btn-warning mx-2"
+                              onClick={() => SendTask(item)}
+                            >
+                              ارسال مهمة
+                            </button>:
+                            <>
+                            <button
+                              type="button"
+                              className="btn btn-danger"
+                              onClick={() => deleteuser(item._id)}
+                            >
+                              حذف
+                            </button>
+
+                            <button
+                              type="button"
+                              className="btn btn-success mx-2"
+                              data-bs-toggle="modal"
+                              data-bs-target="#exampleModal"
+                              onClick={() => handleEditButtonClick(item)}
+                            >
+                              تعديل
+                            </button>
+
+                            <button
+                              type="button"
+                              className="btn btn-primary "
+                              data-bs-toggle="modal"
+                              data-bs-target="#exampleModal"
+                              onClick={() => handleEditPasswordClick(item)}
+                            >
+                              تعديل كلمة السر
+                            </button>
+                            </>
+                            }
                           </td>
                         <td className="">
                           {new Date(item.updatedAt).getDate()}/

@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable eqeqeq */
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import React, { useEffect, useState } from 'react';
 import { Calendar } from '@fullcalendar/core'; // Ensure you're importing from the correct package
@@ -41,7 +43,7 @@ const AttendanceCalender = () => {
         attendance?.updatedAt.startsWith(today)
     );
     console.log(currentUser._id)
-    console.log(today)
+    console.log(AllAttendances)
     if (!userAttendanceExists) {
       // Dispatch createAttendance action
       dispatch(createAttendance({
@@ -65,7 +67,7 @@ const AttendanceCalender = () => {
 
     const calendarEl = document.getElementById('calendar');
     const calendar = new Calendar(calendarEl, {
-      events: AllAttendances.data.map((item) => ({
+      events: AllAttendances.data.filter(item=>item?.userId?._id==currentUser?._id).map((item) => ({
         start: item.updatedAt,
         title: item.userName
       }))

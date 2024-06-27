@@ -1,4 +1,4 @@
-import {CREATE_EMPLOYEE_LAST_JOB, GET_ALL_EMPLOYEE_LAST_JOB} from '../types'
+import {CREATE_EMPLOYEE_LAST_JOB, DELETE_EMPLOYEE_LAST_JOB, GET_ALL_EMPLOYEE_LAST_JOB, UPDATE_EMPLOYEE_LAST_JOB} from '../types'
 
 const inial={
     emplyeeLastJob:[],
@@ -12,6 +12,16 @@ const employeeLastJobReducer=(state=inial,action)=>{
                 emplyeeLastJob:action.payload,
             }
         case GET_ALL_EMPLOYEE_LAST_JOB:
+            return {
+            ...state,
+            emplyeeLastJob:action.payload,
+            }
+        case DELETE_EMPLOYEE_LAST_JOB:
+            return {
+            ...state,
+            emplyeeLastJob:action.payload,
+            }
+        case UPDATE_EMPLOYEE_LAST_JOB:
             return {
             ...state,
             emplyeeLastJob:action.payload,

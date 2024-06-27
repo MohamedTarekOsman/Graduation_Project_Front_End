@@ -4,6 +4,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { signupUser } from '../../Redux/actions/authAction';
 import Swal from 'sweetalert2';
 import { useNavigate } from 'react-router-dom';
+import SideNavbar from '../../components/SideNavbar';
+import TopNavbar from '../../components/TopNavbar';
 
 const AddUserPage = () => {
   const navigate = useNavigate();
@@ -66,15 +68,16 @@ const AddUserPage = () => {
   return (
     <>
       <div className="main-content" style={{ backgroundColor: '#172b4d', minHeight: '100vh' }}>
+        
         <div className="header bg-gradient-primary">
           <div className="container">
             <div className="header-body text-center mb-7" style={{ position: 'relative', top: '100px' }}>
               <div className="row justify-content-center">
                 <div className="col-lg-5 col-md-6">
                   <h1 className="text-white mt-4">
-                    <a target="_blank" className="text-white" href="/">WELCOME</a>
+                    <a target="_blank" className="text-white" href="/">ADD NEW USER</a>
                   </h1>
-                  <p className="text-lead text-light">ADD NEW USER</p>
+                  <p className="text-lead text-light">USER</p>
                 </div>
               </div>
             </div>

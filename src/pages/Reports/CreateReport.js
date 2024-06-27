@@ -3,14 +3,14 @@ import { useFormik } from 'formik'
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import * as Yup from 'yup'
-import {  getOneTask } from '../../Redux/actions/taskActions'
+import {  getOneTask, updateTask } from '../../Redux/actions/taskActions'
 import { ToastContainer } from 'react-toastify'
 import 'flatpickr/dist/flatpickr.min.css'
 import Swal from 'sweetalert2'
 import SideNavbar from '../../components/SideNavbar'
 import TopNavbar from "../../components/TopNavbar";
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { createNotification } from '../../Redux/actions/notificationsAction'
+// import { createNotification } from '../../Redux/actions/notificationsAction'
 import { createEmployeeLastJob } from '../../Redux/actions/employeeLastJobAcion'
 
 const CreateReport = () => {
@@ -45,19 +45,26 @@ const CreateReport = () => {
       sent:true,
       userId:current_user?._id
     }))
+    if(oneLoad==true){
+      await dispatch(updateTask(onetask?.data[0]._id,{
+          status:"في انتظار القبول او الرفض"
+      }))
+    }
+    
     setLoad(true);
   };
 
   useEffect(() => {
     if (load) {
-      if (employeeLastJob.status === 200) {
-        dispatch(createNotification({
-          user_id: current_user._id,
-          sender_name: current_user.username,
-          message: employeeLastJob?.data?.data?.info,
-          task_code: employeeLastJob?.data?.data?.code,
-          message_type: "alert-info",
-        }));
+      console.log(employeeLastJob)
+      if (employeeLastJob.status == 200) {
+        // dispatch(createNotification({
+        //   user_id: current_user._id,
+        //   sender_name: current_user.username,
+        //   message: employeeLastJob?.data?.data?.info,
+        //   task_code: employeeLastJob?.data?.data?.code,
+        //   message_type: "alert-info",
+        // }));
         Swal.fire({
           title: 'تم التحقق!',
           text: 'جارى الآن معالجة البيانات.',
@@ -70,12 +77,12 @@ const CreateReport = () => {
         });
 
         setTimeout(() => {
-          navigate('/allTasks');
+          navigate('/report');
         }, 1500);
 
-        if (ws && employeeLastJob.data) {
-          ws.send(JSON.stringify(employeeLastJob.data));
-        }
+        // if (ws && employeeLastJob.data) {
+        //   ws.send(JSON.stringify(employeeLastJob.data));
+        // }
 
       } else {
         Swal.fire({
