@@ -136,7 +136,7 @@ const deletePrivateNote=(id) => {
     getTasks()
     const calendarEl = document.getElementById('calendar')
     const calendar = new Calendar(calendarEl, {
-      events:user.role=='employee'? Array.isArray(alltasks.data) && alltasks.data.length > 0  ? 
+      events:user?.role=='employee'? Array.isArray(alltasks.data) && alltasks.data.length > 0  ? 
           alltasks.data.filter(item=>item.userId==user?._id).map((item, index) => ({
               start: item.registration_date,
               title: `${item.subject} - كود (${item.code})`
@@ -443,7 +443,6 @@ const deletePrivateNote=(id) => {
             <button class="btn btn-outline-success btn-icon-only mb-0" id="addNoteBtn" onClick={addPrivateNote} style={{display: "block"}}>
                 <i class="material-icons text-sm font-weight-bold">+</i>
             </button>
-
             </div>
 <div class="card-body pt-0">
 <ul class="list-group list-group-flush" data-toggle="checklist">
@@ -478,7 +477,7 @@ const deletePrivateNote=(id) => {
         </div>
         <div className='card-body'>
         {
-        user.role=="employee"?
+        user?.role=="employee"?
             Array.isArray(alltasks.data) && alltasks.data.length > 0 ? (
             alltasks.data.filter(item=>item.userId==user?._id).filter((item) => {
             const registrationDate = new Date(item.registration_date);

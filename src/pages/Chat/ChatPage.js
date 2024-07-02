@@ -11,57 +11,54 @@ import { FaTrashAlt } from 'react-icons/fa';
 
 const ChatPage = () => {
   const dispatch = useDispatch();
-  const [load, setLoad] = useState(false);
-  const [sendM, setSendM] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUser, setSelectedUser] = useState(null);
   const [messageText, setMessageText] = useState('');
+  const [allMessages, setAllMessages] = useState([]);
   const ws = useRef(null); // WebSocket reference
 
   const Currentuser = JSON.parse(localStorage.getItem('user'));
   const allUsers = useSelector((state) => state.userReducer.user);
-  const allMessages = useSelector((state) => state.messageReducer.message);
+  const messages = useSelector((state) => state.messageReducer.message); // Assuming your messages are stored in messageReducer
 
   useEffect(() => {
     const getData = async () => {
       await dispatch(getAllUsers());
-      await dispatch(getAllMessages());
-      setLoad(true);
+      await dispatch(getAllMessages()); // Fetch all messages
+
+      // Retrieve messages from Redux state and save them to localStorage
+      const fetchedMessages = messages || [];
+      setAllMessages(fetchedMessages);
+      localStorage.setItem('messages', JSON.stringify(fetchedMessages));
 
       // Connect to WebSocket server
-      ws.current = new WebSocket('ws://localhost:8000'); // Replace with your WebSocket server URL
-
-      // WebSocket event listeners
-      ws.current.onopen = () => {
-        console.log('WebSocket connected');
-      };
-
-      ws.current.onclose = () => {
-        console.log('WebSocket disconnected');
-      };
+      ws.current = new WebSocket('ws://localhost:8000');
 
       ws.current.onmessage = (event) => {
         try {
-          console.log(event)
-          const data = JSON.stringify(event.data);
-          console.log('Received message:', data);
-          // Handle incoming messages, update Redux state or UI as needed
-          
-          dispatch(getAllMessages());
+          event.data.text().then((messageText) => {
+            console.log('Received message:', messageText);
+            const newMessage = JSON.parse(messageText);
+            console.log(newMessage);
+            const updatedMessages = [allMessages, newMessage];
+            setAllMessages(updatedMessages);
+            localStorage.setItem('messages', JSON.stringify(updatedMessages));
+          });
         } catch (error) {
           console.error('Error parsing WebSocket message:', error);
         }
       };
     };
-    getData();
-  }, [dispatch]);
 
-  useEffect(() => {
-    if (load) {
-      console.log(allUsers);
-      console.log(allMessages);
-    }
-  }, [load]);
+    getData();
+
+    return () => {
+      // Clean up WebSocket connection
+      if (ws.current) {
+        ws.current.close();
+      }
+    };
+  }, [dispatch, messages]);
 
   const handleSearchChange = (event) => {
     setSearchTerm(event.target.value);
@@ -79,13 +76,11 @@ const ChatPage = () => {
       )
     : [];
 
-  const filteredMessages = Array.isArray(allMessages.data)
-    ? allMessages.data.filter(
-        (message) =>
-          (message.sender === Currentuser.username && message.receiver === selectedUser?.username) ||
-          (message.sender === selectedUser?.username && message.receiver === Currentuser.username)
-      )
-    : [];
+    const filteredMessages = Array.isArray(allMessages.data)&&messages.data.length>0? allMessages.data.filter(
+    (message) =>
+      (message.sender === Currentuser.username && message.receiver === selectedUser?.username) ||
+      (message.sender === selectedUser?.username && message.receiver === Currentuser.username)
+  ):[];
 
   const handleSendMessage = async () => {
     if (!messageText || !selectedUser) return;
@@ -101,17 +96,14 @@ const ChatPage = () => {
       ws.current.send(JSON.stringify(messageData));
       dispatch(createMessage(messageData));
       setMessageText('');
-      setSendM(true)
+      const updatedMessages = [...allMessages, messageData];
+      setAllMessages(updatedMessages);
+      localStorage.setItem('messages', JSON.stringify(updatedMessages));
+      console.log(messageData);
     } catch (error) {
       console.error('Error sending message:', error);
     }
   };
-  useEffect(()=>{
-    if(sendM===true){
-      dispatch(getAllMessages())
-      dispatch(getAllUsers())
-    }
-  },[sendM])
 
   const handleDeleteChat = async () => {
     if (selectedUser) {
@@ -131,15 +123,33 @@ const ChatPage = () => {
             receiver: selectedUser.username
           })).then(() => {
             Swal.fire('تم!', 'تم حذف جميع الرسائل بنجاح.', 'success');
-            dispatch(getAllMessages());
+            const updatedMessages = allMessages.filter(
+              (message) =>
+                !(
+                  (message.sender === Currentuser.username && message.receiver === selectedUser.username) ||
+                  (message.sender === selectedUser.username && message.receiver === Currentuser.username)
+                )
+            );
+            setAllMessages(updatedMessages);
+            localStorage.setItem('messages', JSON.stringify(updatedMessages));
           });
         }
       } catch (error) {
         Swal.fire('خطأ!', 'عذرا حدث خطأ', 'error');
-        dispatch(getAllMessages());
       }
     }
   };
+  const messagesEndRef = useRef(null);
+
+  const scrollToBottom = () => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollTop = messagesEndRef.current.scrollHeight;
+    }
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [filteredMessages]);
 
   return (
     <>
@@ -228,13 +238,13 @@ const ChatPage = () => {
                     </div>
                   </div>
                 </div>
-                <div className="card-body overflow-auto overflow-x-hidden">
+                <div className="card-body overflow-auto overflow-x-hidden" ref={messagesEndRef}>
                   {filteredMessages.length > 0 ? (
                     filteredMessages.map((message, index) => (
                       <div
                         key={index}
                         className={`row justify-content-${
-                          message.sender === Currentuser.username ? 'start' : 'end'
+                          message.sender === Currentuser.username ? 'end' : 'start'
                         } mb-4`}
                       >
                         <div className="col-auto">
@@ -243,7 +253,7 @@ const ChatPage = () => {
                               <p className="mb-1">{message.message}</p>
                               <div className="d-flex align-items-center text-sm opacity-6">
                                 <i className="ni ni-check-bold text-sm me-1" />
-                                <small>{new Date(message.updatedAt).toLocaleString('en-US', {year: 'numeric',month: '2-digit',day: '2-digit',hour: '2-digit',minute:'2-digit'}).replace(',', '')}</small>
+                                <small>{new Date(message.createdAt).toLocaleString('en-US', {year: 'numeric',month: '2-digit',day: '2-digit',hour: '2-digit',minute:'2-digit'}).replace(',', '')}</small>
                               </div>
                             </div>
                           </div>

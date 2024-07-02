@@ -2,6 +2,7 @@ import {CREATE_MESSAGE, DELETE_MESSAGES_BETWEEN_USERS, GET_ALL_MESSAGES} from '.
 
 const inial={
     message:[],
+    createMessage:[],
 }
 
 const messageReducer=(state=inial,action)=>{
@@ -9,7 +10,7 @@ const messageReducer=(state=inial,action)=>{
         case CREATE_MESSAGE:
             return {
                 ...state,
-                message:action.payload,
+                createMessage:action.payload,
             }
         case GET_ALL_MESSAGES:
             return {
