@@ -30,13 +30,12 @@ const AttendanceCalender = () => {
     fetchData();
   }, [dispatch]);
 
-  // Check and set user visit time when currentUser is set
   useEffect(() => {
     if (!currentUser || !dataLoaded || !Array.isArray(AllAttendances.data)) return;
 
-    const today = new Date().toISOString().split('T')[0]; // Get today's date in YYYY-MM-DD format
+    const today = new Date().toISOString().split('T')[0];
 
-    // Check if attendance already exists for today for the current user
+
     const userAttendanceExists = AllAttendances.data.some(
       (attendance) =>
         attendance?.userId?._id === currentUser._id &&
@@ -67,7 +66,10 @@ const AttendanceCalender = () => {
 
     const calendarEl = document.getElementById('calendar');
     const calendar = new Calendar(calendarEl, {
-      events: AllAttendances.data.filter(item=>item?.userId?._id==currentUser?._id).map((item) => ({
+      events: currentUser.role=="employee"?AllAttendances.data.filter(item=>item?.userId?._id==currentUser?._id).map((item) => ({
+        start: item.updatedAt,
+        title: item.userName
+      })):AllAttendances.data.map((item) => ({
         start: item.updatedAt,
         title: item.userName
       }))

@@ -7,6 +7,7 @@ import notificationReducer from './notificationReducer'
 import noteReducer from './noteReducer'
 import attendanceReducer from './attendanceReducer'
 import employeeLastJobReducer from './employeeLastJobReducer'
+import messageReducer from './messageReducer'
 
 export default combineReducers({
     authReducer:authReducer,
@@ -16,5 +17,6 @@ export default combineReducers({
     notificationReducer:notificationReducer,
     noteReducer:noteReducer,
     attendanceReducer:attendanceReducer,
-    employeeLastJobReducer:employeeLastJobReducer
+    employeeLastJobReducer:employeeLastJobReducer,
+    messageReducer:messageReducer,
 })

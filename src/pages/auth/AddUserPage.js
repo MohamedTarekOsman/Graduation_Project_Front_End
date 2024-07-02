@@ -4,8 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { signupUser } from '../../Redux/actions/authAction';
 import Swal from 'sweetalert2';
 import { useNavigate } from 'react-router-dom';
-import SideNavbar from '../../components/SideNavbar';
-import TopNavbar from '../../components/TopNavbar';
+
 
 const AddUserPage = () => {
   const navigate = useNavigate();
@@ -77,7 +76,7 @@ const AddUserPage = () => {
                   <h1 className="text-white mt-4">
                     <a target="_blank" className="text-white" href="/">ADD NEW USER</a>
                   </h1>
-                  <p className="text-lead text-light">USER</p>
+                  <p className="text-lead text-light">_______________________</p>
                 </div>
               </div>
             </div>

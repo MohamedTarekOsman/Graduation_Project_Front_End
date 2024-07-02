@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable eqeqeq */
 /* eslint-disable jsx-a11y/anchor-is-valid */
 
@@ -135,8 +136,15 @@ const deletePrivateNote=(id) => {
     getTasks()
     const calendarEl = document.getElementById('calendar')
     const calendar = new Calendar(calendarEl, {
-      events: Array.isArray(alltasks.data) && alltasks.data.length > 0  ? 
+      events:user.role=='employee'? Array.isArray(alltasks.data) && alltasks.data.length > 0  ? 
           alltasks.data.filter(item=>item.userId==user?._id).map((item, index) => ({
+              start: item.registration_date,
+              title: `${item.subject} - كود (${item.code})`
+          })) : [{
+              start: '',
+              title: ''
+          }]:Array.isArray(alltasks.data) && alltasks.data.length > 0  ? 
+          alltasks.data.map((item, index) => ({
               start: item.registration_date,
               title: `${item.subject} - كود (${item.code})`
           })) : [{
@@ -470,6 +478,7 @@ const deletePrivateNote=(id) => {
         </div>
         <div className='card-body'>
         {
+        user.role=="employee"?
             Array.isArray(alltasks.data) && alltasks.data.length > 0 ? (
             alltasks.data.filter(item=>item.userId==user?._id).filter((item) => {
             const registrationDate = new Date(item.registration_date);
@@ -482,7 +491,20 @@ const deletePrivateNote=(id) => {
             <span class="text-lg font-weight-bolder text-bold">{item.info} ,  كود : {item.code}</span>
         </div>
       ))
-  ) : ""
+            ) : "":
+            Array.isArray(alltasks.data) && alltasks.data.length > 0 ? (
+                alltasks.data.filter((item) => {
+                const registrationDate = new Date(item.registration_date);
+                const now = new Date();
+                const millisecondsInADay = 1000 * 60 * 60 * 24;
+                const threeDaysFromNow = now.getTime() + (3 * millisecondsInADay);
+                return registrationDate.getTime() <= threeDaysFromNow && registrationDate.getTime() >= now.getTime();
+          }).map((item, index) => (
+            <div className="rtl alert-custom alert-danger alert-dismissible text-white" >
+                <span class="text-lg font-weight-bolder text-bold">{item.info} ,  كود : {item.code}</span>
+            </div>
+          ))
+                ) : ""
 }</div>
         
       </div>
