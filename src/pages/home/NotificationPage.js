@@ -63,7 +63,7 @@ useEffect(()=>{
               </div>
               <div className="w-100 card p-4 rtl">
                 {notifications && Array.isArray(notifications.data) && notifications.data.length > 0 && currentUser && (
-                  currentUser.role === 'manager' ? (
+                  currentUser.role === 'admin' ? (
                     notifications.data.filter(item=>item.user_id==null).map((item, index) => (
                       <div key={index} className={"alert text-white " + item.message_type} role="alert">
                         {item.message} |   code : {item.task_code}

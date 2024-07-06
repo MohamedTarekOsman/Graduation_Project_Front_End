@@ -90,7 +90,7 @@ const TopNavbar = () => {
                 <i className="fa fa-bell cursor-pointer"></i>
               </a>
               <ul className="dropdown-menu dropdown-menu-end px-2 py-3 me-sm-n4" aria-labelledby="dropdownMenuButton">
-                {currentUser && currentUser.role === 'manager'
+                {currentUser && currentUser.role === 'admin'
                   ? notifications.filter(item=>item.user_id==null).filter(item=>item.code).slice(0, 4).map((item, index) => (
                       <li className="mb-2" key={index}>
                         <a className="dropdown-item border-radius-md" href="javascript:;">
@@ -140,7 +140,7 @@ const TopNavbar = () => {
               </ul>
               <div style={{ backgroundColor: "red", width: "15px", height: "15px", fontSize: "10px", color: "white", textAlign: "center", borderRadius: "100%", marginTop: "-10px" }}>
                 {currentUser
-                  ? currentUser.role === 'manager'
+                  ? currentUser.role === 'admin'
                     ? notifications.filter(item=>item.user_id==null).filter(item=>item.code).length
                     : notifications.filter(item => item.data?.userId === currentUser._id).length
                   : 0}
