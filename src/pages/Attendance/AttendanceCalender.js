@@ -66,7 +66,7 @@ const AttendanceCalender = () => {
 
     const calendarEl = document.getElementById('calendar');
     const calendar = new Calendar(calendarEl, {
-      events: currentUser.role=="employee"?AllAttendances.data.filter(item=>item?.userId?._id==currentUser?._id).map((item) => ({
+      events:(currentUser.role=="employee" || currentUser.role=="manager")?AllAttendances.data.filter(item=>item?.userId?._id==currentUser?._id).map((item) => ({
         start: item.updatedAt,
         title: item.userName
       })):AllAttendances.data.map((item) => ({
